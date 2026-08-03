@@ -28,6 +28,10 @@ describe('publishings.yaml', () => {
       expect(typeof entry.date, `date must be a quoted string: ${label}`).toBe('string')
       expect(entry.date, label).toMatch(/^\d{4}-\d{2}-\d{2}$/)
       expect(Number.isNaN(Date.parse(entry.date)), label).toBe(false)
+      expect(
+        new Date(`${entry.date}T00:00:00Z`).toISOString().slice(0, 10),
+        `date must be a real calendar date: ${label}`,
+      ).toBe(entry.date)
       expect(entry.url, label).toMatch(/^(\/|https?:\/\/)/)
     }
   })
