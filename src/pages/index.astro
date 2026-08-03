@@ -1,12 +1,9 @@
 ---
 import { getCollection } from 'astro:content'
-import { marked } from 'marked'
 import publishings from '../data/publishings.yaml'
-import bioRaw from '../data/bio.md?raw'
+import { Content as Bio } from '../data/bio.md'
 import { mergeFeed, type FeedItem } from '../lib/feed'
 import '../styles/base.css'
-
-const bioHtml = marked.parse(bioRaw)
 
 const posts = await getCollection('blog')
 const entries = mergeFeed(publishings as FeedItem[], posts)
@@ -35,7 +32,7 @@ const formatDate = (iso: string) =>
     <main>
       <header class="bio">
         <h1>Uğur</h1>
-        <div class="bio-text" set:html={bioHtml} />
+        <div class="bio-text"><Bio /></div>
       </header>
 
       <section class="publishings" aria-labelledby="publishings-heading">
