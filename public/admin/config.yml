@@ -1,0 +1,48 @@
+backend:
+  name: github
+  repo: ugurkc/ugurkc.github.io
+  branch: main
+
+media_folder: public/uploads
+public_folder: /uploads
+
+collections:
+  - name: blog
+    label: Blog posts
+    folder: src/content/blog
+    create: true
+    extension: md
+    slug: "{{slug}}"
+    sortable_fields:
+      fields: [date, title]
+      default: { field: date, direction: descending }
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: description, label: Description, widget: text }
+      - { name: date, label: "Date (YYYY-MM-DD)", widget: string, pattern: ['^\d{4}-\d{2}-\d{2}$', 'Use YYYY-MM-DD'] }
+      - { name: draft, label: "Draft (unlisted)", widget: boolean, default: true }
+      - { name: body, label: Body, widget: markdown }
+
+  - name: site
+    label: Site
+    files:
+      - name: publishings
+        label: Publishings list
+        file: src/data/publishings.yaml
+        fields:
+          # root: true keeps the saved file a top-level YAML list, matching
+          # what src/pages/index.astro imports and publishings.test.ts guards.
+          - name: publishings
+            label: Publishings
+            widget: list
+            root: true
+            fields:
+              - { name: title, label: Title, widget: string }
+              - { name: description, label: Description, widget: text }
+              - { name: date, label: "Date (YYYY-MM-DD)", widget: string, pattern: ['^\d{4}-\d{2}-\d{2}$', 'Use YYYY-MM-DD'] }
+              - { name: url, label: "URL (/slug/ or https://…)", widget: string, pattern: ['^(\/|https?:\/\/)', 'Start with / or http(s)://'] }
+      - name: bio
+        label: Bio
+        file: src/data/bio.md
+        fields:
+          - { name: body, label: Bio text, widget: markdown }
