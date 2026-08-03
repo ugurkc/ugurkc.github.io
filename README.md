@@ -1,21 +1,77 @@
 # ugurkc.github.io
 
-Personal site: bio + publishings. Built with [Astro](https://astro.build),
-deployed to GitHub Pages on every push to `main`.
+Personal site: bio + publishings + blog. Built with
+[Astro](https://astro.build), deployed to GitHub Pages on every push to
+`main`.
 
 ## Amending the site
+
+Everything below can now also be edited in the browser — see
+[Editing content (no code)](#editing-content-no-code). To edit the files
+directly instead:
 
 - **Add/edit a publishing:** edit `src/data/publishings.yaml` (one entry per
   publishing: `title`, `description`, `date` — quoted, `"YYYY-MM-DD"` — and
   `url` — site-relative like `/watershed/`, or absolute `http(s)://...`),
   then push. That's it.
-- **Edit the bio:** edit the header section in `src/pages/index.astro`.
+- **Edit the bio:** edit `src/data/bio.md`.
+- **Add/edit a blog post:** add or edit a markdown file in
+  `src/content/blog/` (frontmatter: `title`, `description`, `date` — quoted
+  `"YYYY-MM-DD"` — and `draft`).
+
+## Editing content (no code)
+
+Two admin panels ([Sveltia CMS](https://github.com/sveltia/sveltia-cms),
+vendored in each repo) let the owner edit content from the browser:
+
+- **<https://ugurkc.github.io/admin/>** — blog posts, the publishings list,
+  and the bio (this repo).
+- **<https://ugurkc.github.io/watershed/admin/>** — the Watershed essay text
+  (the [watershed](https://github.com/ugurkc/watershed) repo).
+
+### One-time setup: a fine-grained access token
+
+The admin signs in with a GitHub fine-grained personal access token:
+
+1. GitHub → Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens → **Generate new token**.
+2. Repository access: **Only select repositories** → `ugurkc.github.io` and
+   `watershed`.
+3. Permissions → Repository permissions → **Contents: Read and write**
+   (Metadata: Read-only is added automatically).
+4. Generate and copy the token.
+5. In the admin, choose **Sign In Using Access Token** and paste it. The
+   token is stored in the browser, so this is once per browser/device.
+
+**Security:** never share the token or paste it anywhere other than these
+two admin pages — it can push to both repos. Revoke it at any time from the
+same GitHub tokens page.
+
+### Publishing model
+
+Save = a commit to `main` → the repo's full test suite runs in CI (17 tests
+in this repo, 156 in watershed) → the site deploys, live in about a minute.
+A failing edit does **not** deploy — the site stays on the last good
+version. If an edit doesn't appear, check the repo's Actions tab.
+
+### Blog drafts
+
+`Draft` ON = unlisted preview: the post renders at its URL (shareable
+link), but it's not on the homepage and carries `noindex`. Switch `Draft`
+OFF to publish.
+
+### Maintenance
+
+To update the CMS: `npm update @sveltia/cms` in each repo, re-copy
+`node_modules/@sveltia/cms/dist/sveltia-cms.js` into `public/admin/`, and
+run the tests — a guard test fails if the vendored copy drifts from the
+installed version.
 
 ## Local development
 
     npm install
     npm run dev        # http://localhost:4321
-    npm run test       # validates publishings.yaml shape
+    npm run test       # run the test suite
     npm run build      # output in dist/
 
 ## Publishing a new interactive essay
@@ -34,3 +90,7 @@ Each essay lives in its own repo and appears at
    `gh api repos/ugurkc/<slug>/pages -X POST -f build_type=workflow`
 4. Push to `main` — the essay goes live at `ugurkc.github.io/<slug>/`.
 5. Add an entry for it in `src/data/publishings.yaml` here and push.
+6. *(Optional)* For web-editable prose, copy the `src/content/` +
+   `src/lib/essayContent.*` + `public/admin/` pattern from the watershed
+   repo (set `repo:` in `config.yml` to the new repo, and `public_folder`
+   to `/<slug>/uploads`).
