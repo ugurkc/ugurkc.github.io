@@ -19,7 +19,12 @@ const formatted = new Date(`${post.data.date}T00:00:00Z`).toLocaleDateString('en
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={post.data.description} />
+    {post.data.draft && <meta name="robots" content="noindex" />}
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={post.data.title} />
+    <meta property="og:description" content={post.data.description} />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
     <title>{post.data.title} — Uğur</title>
   </head>
   <body>
@@ -47,6 +52,10 @@ const formatted = new Date(`${post.data.date}T00:00:00Z`).toLocaleDateString('en
   .prose :global(h2) { margin: 40px 0 12px; font-size: 1.3rem; }
   .prose :global(p) { margin: 0 0 16px; }
   .prose :global(a) { color: var(--accent); }
+  .prose :global(img) { max-width: 100%; height: auto; }
+  .prose :global(ul), .prose :global(ol) { margin: 0 0 16px; padding-left: 24px; }
+  .prose :global(h3) { margin: 32px 0 10px; font-size: 1.1rem; }
+  .prose :global(hr) { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
   .prose :global(code) { background: var(--card); border: 1px solid var(--border);
     border-radius: 4px; padding: 1px 5px; font-size: 0.9em; }
   .prose :global(pre) { background: var(--card); border: 1px solid var(--border);
