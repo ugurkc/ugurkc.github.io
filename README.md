@@ -7,7 +7,8 @@ deployed to GitHub Pages on every push to `main`.
 
 - **Add/edit a publishing:** edit `src/data/publishings.yaml` (one entry per
   publishing: `title`, `description`, `date` — quoted, `"YYYY-MM-DD"` — and
-  `url`), then push. That's it.
+  `url` — site-relative like `/watershed/`, or absolute `http(s)://...`),
+  then push. That's it.
 - **Edit the bio:** edit the header section in `src/pages/index.astro`.
 
 ## Local development
