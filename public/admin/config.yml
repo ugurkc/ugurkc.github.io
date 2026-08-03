@@ -2,6 +2,9 @@ backend:
   name: github
   repo: ugurkc/ugurkc.github.io
   branch: main
+  # Token sign-in only: the OAuth button needs a server-side gateway this
+  # static site doesn't run, so it would land on a Not Found page.
+  auth_methods: [token]
 
 media_folder: public/uploads
 public_folder: /uploads

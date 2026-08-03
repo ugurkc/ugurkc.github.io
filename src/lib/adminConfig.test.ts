@@ -37,6 +37,8 @@ describe('admin config', () => {
       name: 'github',
       repo: 'ugurkc/ugurkc.github.io',
       branch: 'main',
+      // token-only: the OAuth button needs an auth gateway we don't run
+      auth_methods: ['token'],
     })
   })
 
