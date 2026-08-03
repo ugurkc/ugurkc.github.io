@@ -1,0 +1,171 @@
+---
+import publishings from '../data/publishings.yaml'
+
+interface Publishing {
+  title: string
+  description: string
+  date: string
+  url: string
+}
+
+const entries = (publishings as Publishing[]).slice().sort((a, b) => b.date.localeCompare(a.date))
+
+const formatDate = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  })
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Uğur's personal site — bio and publishings." />
+    <title>Uğur</title>
+  </head>
+  <body>
+    <main>
+      <header class="bio">
+        <h1>Uğur</h1>
+        <!-- EDIT ME: replace with your real bio -->
+        <p>
+          I build interactive essays and tools. This is my corner of the web —
+          below is what I've published so far.
+        </p>
+      </header>
+
+      <section class="publishings" aria-labelledby="publishings-heading">
+        <h2 id="publishings-heading">Publishings</h2>
+        <ul>
+          {
+            entries.map((p) => (
+              <li>
+                <a href={p.url}>
+                  <span class="title">{p.title}</span>
+                  <time datetime={p.date}>{formatDate(p.date)}</time>
+                  <span class="description">{p.description}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
+
+<style>
+  :root {
+    --ink: #16181d;
+    --muted: #5f6572;
+    --accent: #4f46e5;
+    --paper: #f7f8fa;
+    --card: #ffffff;
+    --border: #e5e7eb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8eaf0;
+      --muted: #9aa1af;
+      --accent: #8b85f4;
+      --paper: #101116;
+      --card: #181a21;
+      --border: #2a2d38;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+    line-height: 1.6;
+  }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 72px 24px 96px;
+  }
+
+  .bio h1 {
+    margin: 0 0 14px;
+    font-size: 2.2rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+  }
+
+  .bio p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+
+  .publishings {
+    margin-top: 56px;
+  }
+
+  .publishings h2 {
+    margin: 0 0 18px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .publishings ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .publishings a {
+    display: block;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease;
+  }
+
+  .publishings a:hover {
+    border-color: var(--accent);
+  }
+
+  .publishings .title {
+    font-weight: 650;
+    font-size: 1.1rem;
+  }
+
+  .publishings time {
+    float: right;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .publishings .description {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+</style>
