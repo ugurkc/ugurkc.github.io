@@ -27,6 +27,9 @@ Each essay lives in its own repo and appears at
    (Vite: `base: '/<slug>/'` in `vite.config.ts`).
 2. Copy `.github/workflows/deploy.yml` from the
    [watershed repo](https://github.com/ugurkc/watershed) into the new repo.
+   The workflow runs `npm run test` — make sure `package.json` has a `test`
+   script (e.g. `"test": "vitest run --passWithNoTests"`), or delete that
+   line from the copied workflow.
 3. Enable Pages for the repo with source "GitHub Actions":
    `gh api repos/ugurkc/<slug>/pages -X POST -f build_type=workflow`
 4. Push to `main` — the essay goes live at `ugurkc.github.io/<slug>/`.
