@@ -6,6 +6,19 @@ backend:
 media_folder: public/uploads
 public_folder: /uploads
 
+# Quote all string output: an unquoted date like 2026-08-03 would be read
+# back by js-yaml (YAML 1.1 timestamp rule) as a Date object and fail the
+# quoted-string zod guards.
+output:
+  yaml:
+    quote: double
+
+# ğ→g, ü→u transliteration so Turkish-character titles yield readable ASCII
+# URLs instead of percent-encoded ones.
+slug:
+  encoding: ascii
+  clean_accents: true
+
 collections:
   - name: blog
     label: Blog posts

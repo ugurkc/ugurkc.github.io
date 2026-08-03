@@ -1,4 +1,4 @@
-import { existsSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -86,6 +86,32 @@ describe('admin config', () => {
       'date',
       'url',
     ])
+  })
+
+  it('quotes YAML string output', () => {
+    // Regression guard: Sveltia's YAML writer defaults to unquoted strings,
+    // and js-yaml (which astro's yaml plugin uses) reads an unquoted
+    // date: 2026-08-03 back as a Date object per the YAML 1.1 timestamp
+    // rule, failing the quoted-"YYYY-MM-DD" zod guards.
+    expect(config.output?.yaml?.quote).toBe('double')
+  })
+
+  it('slugs are ascii with accents cleaned', () => {
+    // ğ→g, ü→u transliteration so Turkish-character titles yield readable
+    // ASCII URLs instead of percent-encoded unicode slugs.
+    expect(config.slug?.encoding).toBe('ascii')
+    expect(config.slug?.clean_accents).toBe(true)
+  })
+
+  it('vendored bundle matches the pinned dependency', () => {
+    const vendored = readFileSync(resolve(repoRoot, 'public/admin/sveltia-cms.js'))
+    const packaged = readFileSync(
+      resolve(repoRoot, 'node_modules/@sveltia/cms/dist/sveltia-cms.js'),
+    )
+    expect(
+      vendored.equals(packaged),
+      'public/admin/sveltia-cms.js differs from node_modules/@sveltia/cms/dist/sveltia-cms.js — re-copy the bundle after npm update',
+    ).toBe(true)
   })
 
   it('date fields are string widgets', () => {
