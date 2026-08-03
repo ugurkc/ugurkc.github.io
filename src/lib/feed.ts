@@ -19,5 +19,7 @@ export function mergeFeed(publishings: FeedItem[], posts: PostLike[]): FeedItem[
       date: p.data.date,
       url: `/blog/${p.id}/`,
     }))
-  return [...publishings, ...postItems].sort((a, b) => b.date.localeCompare(a.date))
+  return [...publishings, ...postItems].sort(
+    (a, b) => b.date.localeCompare(a.date) || a.title.localeCompare(b.title),
+  )
 }
