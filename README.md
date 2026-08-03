@@ -90,7 +90,14 @@ Each essay lives in its own repo and appears at
    `gh api repos/ugurkc/<slug>/pages -X POST -f build_type=workflow`
 4. Push to `main` — the essay goes live at `ugurkc.github.io/<slug>/`.
 5. Add an entry for it in `src/data/publishings.yaml` here and push.
-6. *(Optional)* For web-editable prose, copy the `src/content/` +
-   `src/lib/essayContent.*` + `public/admin/` pattern from the watershed
-   repo (set `repo:` in `config.yml` to the new repo, and `public_folder`
-   to `/<slug>/uploads`).
+6. *(Optional)* For web-editable prose, copy the pattern from the watershed
+   repo — all of: `src/content/`, `src/lib/essayContent.*` (loader + tests),
+   `src/lib/adminConfig.test.ts`, `public/admin/`, and the `@sveltia/cms` +
+   `yaml` devDependencies (exact-pinned). Then:
+   - In the new repo's `config.yml`: set `repo: ugurkc/<slug>` and
+     `public_folder: /<slug>/uploads`.
+   - Add the new repo to your fine-grained token's repository list
+     (GitHub → Settings → Developer settings → Fine-grained tokens → edit) —
+     without this the new admin cannot sign in.
+   - Add `Disallow: /<slug>/admin/` to `public/robots.txt` **in this repo**
+     (project pages can't serve the root robots.txt themselves).
