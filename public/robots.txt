@@ -1,4 +1,3 @@
 User-agent: *
 Disallow: /admin/
 Disallow: /watershed/admin/
-Disallow: /blog-skill-smoke-test/admin/
