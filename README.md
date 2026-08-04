@@ -44,8 +44,17 @@ The admin signs in with a GitHub fine-grained personal access token:
    token is stored in the browser, so this is once per browser/device.
 
 **Security:** never share the token or paste it anywhere other than these
-two admin pages — it can push to both repos. Revoke it at any time from the
-same GitHub tokens page.
+two admin pages — it can push to both repos. Contents write also means
+CI-executed code (`npm ci` and the `test` script both live in
+`package.json`, which the token can rewrite), so treat a leaked token as
+full repo compromise, not just an unwanted content edit. Revoke it at any
+time from the same GitHub tokens page.
+
+Content you paste into the CMS is markup, not just text: raw HTML and
+`javascript:` links in a blog post or the bio would execute on the live
+site, so CI rejects both (`src/lib/markup.test.ts`). Uploaded `.svg` files
+are rejected for the same reason (`src/lib/uploads.test.ts`) — convert
+graphics to PNG or JPG before uploading.
 
 ### Publishing model
 

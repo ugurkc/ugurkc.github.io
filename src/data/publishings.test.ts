@@ -5,9 +5,11 @@ import publishings from './publishings.yaml'
 const entries = publishings as unknown[]
 
 describe('publishings.yaml', () => {
-  it('is a non-empty array', () => {
+  it('is an array', () => {
+    // Shape is what needs guarding. An empty list is a legitimate state
+    // (nothing published yet, or one pulled down) and shouldn't fail CI
+    // as if the CMS had written the wrong structure.
     expect(Array.isArray(entries)).toBe(true)
-    expect(entries.length).toBeGreaterThan(0)
   })
 
   it('every entry matches the feed entry schema', () => {
