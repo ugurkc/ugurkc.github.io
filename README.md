@@ -71,10 +71,11 @@ OFF to publish.
 
 ### Maintenance
 
-To update the CMS: `npm update @sveltia/cms` in each repo, re-copy
-`node_modules/@sveltia/cms/dist/sveltia-cms.js` into `public/admin/`, and
-run the tests — a guard test fails if the vendored copy drifts from the
-installed version.
+To update the CMS: bump the exact-pinned `@sveltia/cms` version in each
+repo's `package.json`, `npm install`, and push. The 2.4 MB admin bundle is
+**not** committed — `npm run dev` and `npm run build` copy it out of
+`node_modules` each time (the `predev`/`prebuild` scripts), so it can never
+drift from the installed version and never bloats git history.
 
 ## Local development
 

@@ -7,7 +7,9 @@
     "node": ">=22"
   },
   "scripts": {
+    "predev": "cp node_modules/@sveltia/cms/dist/sveltia-cms.js public/admin/",
     "dev": "astro dev",
+    "prebuild": "cp node_modules/@sveltia/cms/dist/sveltia-cms.js public/admin/",
     "build": "astro build",
     "preview": "astro preview",
     "test": "vitest run"
