@@ -786,7 +786,7 @@ Expected: `200`, `200`, `1`, `Disallow: /blog-skill-smoke-test/admin/`. Browser 
 
 **Step 3: Confirm the scaffolded repo's CI is real, not vacuous**
 
-The first Actions run already passed (Step 1 watched it) — additionally verify the suite locally in the scaffold at `~/repos/blog-skill-smoke-test`: `npm run test` → 20 tests (12 essayContent + 8 adminConfig), `npm run lint` clean.
+The first Actions run already passed (Step 1 watched it) — additionally verify the suite locally in the scaffold at `~/repos/blog-skill-smoke-test`: `npm run test` → 28 tests (20 essayContent + 8 adminConfig), `npm run lint` clean.
 
 **Step 4: Clean up — leave no trace on the live site**
 
@@ -808,6 +808,6 @@ Verify after the hub redeploys (~1–2 min): homepage grep for `blog-skill-smoke
 ### Done criteria
 
 - `/blog <slug>` from a fresh session in any directory produces a live, deployed, CMS-equipped, CI-tested essay repo after one confirmation.
-- The scaffolded repo's own suite (20 tests) passes on its first CI run — templates are internally consistent, not just individually well-formed.
+- The scaffolded repo's own suite (28 tests) passes on its first CI run — templates are internally consistent, not just individually well-formed.
 - The only live-site side effect per invocation is the documented publishings + robots update.
 - `~/.claude/skills/blog` has local git history tracking the skill's evolution.
