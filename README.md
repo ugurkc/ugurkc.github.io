@@ -26,8 +26,8 @@ vendored in each repo) let the owner edit content from the browser:
 
 - **<https://ugurkc.github.io/admin/>** — blog posts, the publishings list,
   and the bio (this repo).
-- **<https://ugurkc.github.io/riverbed/admin/>** — the Watershed essay text
-  (the [watershed](https://github.com/ugurkc/riverbed) repo).
+- **<https://ugurkc.github.io/riverbed/admin/>** — the *Move the Riverbed*
+  essay text (the [riverbed](https://github.com/ugurkc/riverbed) repo).
 
 ### One-time setup: a fine-grained access token
 
@@ -36,7 +36,7 @@ The admin signs in with a GitHub fine-grained personal access token:
 1. GitHub → Settings → Developer settings → Personal access tokens →
    Fine-grained tokens → **Generate new token**.
 2. Repository access: **Only select repositories** → `ugurkc.github.io` and
-   `watershed`.
+   `riverbed`.
 3. Permissions → Repository permissions → **Contents: Read and write**
    (Metadata: Read-only is added automatically).
 4. Generate and copy the token.
@@ -58,8 +58,8 @@ graphics to PNG or JPG before uploading.
 
 ### Publishing model
 
-Save = a commit to `main` → the repo's full test suite runs in CI (17 tests
-in this repo, 156 in watershed) → the site deploys, live in about a minute.
+Save = a commit to `main` → the repo's full test suite runs in CI (22 tests
+in this repo, 248 in riverbed) → the site deploys, live in about a minute.
 A failing edit does **not** deploy — the site stays on the last good
 version. If an edit doesn't appear, check the repo's Actions tab.
 
@@ -92,7 +92,7 @@ Each essay lives in its own repo and appears at
 1. Create the repo `ugurkc/<slug>`. Set the build's base path to `/<slug>/`
    (Vite: `base: '/<slug>/'` in `vite.config.ts`).
 2. Copy `.github/workflows/deploy.yml` from the
-   [watershed repo](https://github.com/ugurkc/riverbed) into the new repo.
+   [riverbed repo](https://github.com/ugurkc/riverbed) into the new repo.
    The workflow runs `npm run test` — make sure `package.json` has a `test`
    script (e.g. `"test": "vitest run --passWithNoTests"`), or delete that
    line from the copied workflow.
@@ -100,7 +100,7 @@ Each essay lives in its own repo and appears at
    `gh api repos/ugurkc/<slug>/pages -X POST -f build_type=workflow`
 4. Push to `main` — the essay goes live at `ugurkc.github.io/<slug>/`.
 5. Add an entry for it in `src/data/publishings.yaml` here and push.
-6. *(Optional)* For web-editable prose, copy the pattern from the watershed
+6. *(Optional)* For web-editable prose, copy the pattern from the riverbed
    repo — all of: `src/content/`, `src/lib/essayContent.*` (loader + tests),
    `src/lib/adminConfig.test.ts`, `public/admin/`, and the `@sveltia/cms` +
    `yaml` devDependencies (exact-pinned). Then:
