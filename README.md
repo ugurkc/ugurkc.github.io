@@ -12,7 +12,7 @@ directly instead:
 
 - **Add/edit a publishing:** edit `src/data/publishings.yaml` (one entry per
   publishing: `title`, `description`, `date` — quoted, `"YYYY-MM-DD"` — and
-  `url` — site-relative like `/watershed/`, or absolute `http(s)://...`),
+  `url` — site-relative like `/riverbed/`, or absolute `http(s)://...`),
   then push. That's it.
 - **Edit the bio:** edit `src/data/bio.md`.
 - **Add/edit a blog post:** add or edit a markdown file in
@@ -26,8 +26,8 @@ vendored in each repo) let the owner edit content from the browser:
 
 - **<https://ugurkc.github.io/admin/>** — blog posts, the publishings list,
   and the bio (this repo).
-- **<https://ugurkc.github.io/watershed/admin/>** — the Watershed essay text
-  (the [watershed](https://github.com/ugurkc/watershed) repo).
+- **<https://ugurkc.github.io/riverbed/admin/>** — the Watershed essay text
+  (the [watershed](https://github.com/ugurkc/riverbed) repo).
 
 ### One-time setup: a fine-grained access token
 
@@ -92,7 +92,7 @@ Each essay lives in its own repo and appears at
 1. Create the repo `ugurkc/<slug>`. Set the build's base path to `/<slug>/`
    (Vite: `base: '/<slug>/'` in `vite.config.ts`).
 2. Copy `.github/workflows/deploy.yml` from the
-   [watershed repo](https://github.com/ugurkc/watershed) into the new repo.
+   [watershed repo](https://github.com/ugurkc/riverbed) into the new repo.
    The workflow runs `npm run test` — make sure `package.json` has a `test`
    script (e.g. `"test": "vitest run --passWithNoTests"`), or delete that
    line from the copied workflow.
