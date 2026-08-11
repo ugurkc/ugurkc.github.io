@@ -59,7 +59,7 @@ graphics to PNG or JPG before uploading.
 ### Publishing model
 
 Save = a commit to `main` → the repo's full test suite runs in CI (22 tests
-in this repo, 284 in movements) → the site deploys, live in about a minute.
+in this repo, 295 in movements) → the site deploys, live in about a minute.
 A failing edit does **not** deploy — the site stays on the last good
 version. If an edit doesn't appear, check the repo's Actions tab.
 
