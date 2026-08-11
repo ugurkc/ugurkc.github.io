@@ -1,5 +1,6 @@
 node_modules/
 dist/
+docs/plans/*.local.md
 .astro/
 .DS_Store
 public/admin/sveltia-cms.js
