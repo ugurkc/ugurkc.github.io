@@ -1,1 +1,1 @@
-I build interactive essays and tools. This is my corner of the web — below is what I've published so far.
+I model games as systems — player lifecycles, virtual economies, live-ops experiments — and publish interactive essays where you pull the levers yourself. Behind them: eight years of ML and behavioural analytics at consumer scale, a venture-backed community-analytics startup for game studios, and a seat as one of four developers on WoWSims' Warlock simulator. One lever per essay, below. Working on one of these problems in your game? I'd love to hear about it.

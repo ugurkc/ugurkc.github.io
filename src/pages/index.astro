@@ -20,19 +20,28 @@ const formatDate = (iso: string) =>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Uğur's personal site — bio and publishings." />
+    <meta name="description" content="Interactive essays and simulation playgrounds on games, data and AI — player lifecycles, virtual economies, live-ops experimentation." />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Uğur" />
-    <meta property="og:description" content="Uğur's personal site — bio and publishings." />
+    <meta property="og:title" content="Uğur Koç — interactive essays on games, data & AI" />
+    <meta property="og:description" content="Interactive essays and simulation playgrounds on games, data and AI — player lifecycles, virtual economies, live-ops experimentation." />
     <meta property="og:url" content={Astro.site} />
-    <title>Uğur</title>
+    <meta property="og:image" content="https://ugurkc.github.io/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Uğur Koç — interactive essays on games, data & AI</title>
+    <script data-goatcounter="https://ugurkc.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </head>
   <body>
     <main>
       <header class="bio">
-        <h1>Uğur</h1>
+        <h1>Uğur Koç</h1>
+        <p class="tagline">Data science &amp; AI for games — systems thinking, one lever per essay.</p>
         <div class="bio-text"><Bio /></div>
+        <nav class="contact" aria-label="Contact">
+          <a href="https://www.linkedin.com/in/ugurkc">LinkedIn</a>
+          <a href="https://github.com/ugurkc">GitHub</a>
+          <a href="mailto:ugurkoc96@hotmail.com">Email</a>
+        </nav>
       </header>
 
       <section class="publishings" aria-labelledby="publishings-heading">
@@ -63,16 +72,42 @@ const formatDate = (iso: string) =>
   }
 
   .bio h1 {
-    margin: 0 0 14px;
+    margin: 0 0 4px;
     font-size: 2.2rem;
     font-weight: 750;
     letter-spacing: -0.02em;
+  }
+
+  .tagline {
+    margin: 0 0 14px;
+    font-size: 0.95rem;
+    font-weight: 650;
+    color: var(--accent);
+    letter-spacing: 0.01em;
   }
 
   .bio-text :global(p) {
     margin: 0;
     color: var(--muted);
     font-size: 1.05rem;
+  }
+
+  .contact {
+    margin-top: 16px;
+    display: flex;
+    gap: 18px;
+  }
+
+  .contact a {
+    font-size: 0.85rem;
+    font-weight: 650;
+    text-decoration: none;
+    color: var(--muted);
+  }
+
+  .contact a:hover,
+  .contact a:focus-visible {
+    color: var(--accent);
   }
 
   .publishings {

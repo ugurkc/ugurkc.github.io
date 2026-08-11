@@ -25,7 +25,10 @@ const formatted = new Date(`${post.data.date}T00:00:00Z`).toLocaleDateString('en
     <meta property="og:title" content={post.data.title} />
     <meta property="og:description" content={post.data.description} />
     <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
-    <title>{post.data.title} — Uğur</title>
+    <meta property="og:image" content="https://ugurkc.github.io/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>{post.data.title} — Uğur Koç</title>
+    <script data-goatcounter="https://ugurkc.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </head>
   <body>
     <main>
