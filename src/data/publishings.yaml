@@ -2,3 +2,8 @@
   description: "An interactive essay on modeling player lifecycles as Markov chains — onboarding, engagement, churn, and win-back, with a live simulator."
   date: "2026-08-03"
   url: "/movements/"
+
+- title: "Bandits"
+  description: "An interactive essay on decisions under uncertainty — pitch ad campaigns, run a noisy trial by hand, then watch multi-armed bandit strategies find the winner for you."
+  date: "2026-08-24"
+  url: "/bandits/"
