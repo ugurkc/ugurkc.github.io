@@ -48,8 +48,9 @@ records the item; No just lets the player go again.
 
 ## Screen
 
-- **Top bar:** step tabs 1–6, note picker (or pair picker / shuffle for 4–5), BPM,
-  fret-window start, Start/Stop.
+- **Top bar:** step tabs 1–6; below them, per step, the note picker (or pair picker /
+  shuffle for 4–5; drill and BPM for 6) and Start/Stop. The fret-window select sits next
+  to the chart toggle.
 - **Centre:** big cue (**A · string 4**) with a direction arrow, a smaller "next: string
   3", and a 6→1 string ladder with the current string lit. Step 5 also shows the shuffled
   note row with the current note highlighted.
@@ -88,15 +89,19 @@ Pure logic, framework-free and fully unit-tested:
 - `progress.ts` — progress state, reducer for "set clean" events, unlock rules, storage
   load/save with version check.
 
-UI (React): `Metronome` (audio scheduler hook), `PracticeScreen`, `Cue`, `StringLadder`,
-`FretChart`, `StepTabs`, `CleanPrompt`.
+`metronome.ts` — a `Metronome` class (Web Audio lookahead scheduler), one instance shared
+app-wide.
+
+UI (React): `PracticeScreen` (with the clean prompt inline), `Cue`, `StringLadder`,
+`FretChart`, `StepTabs`.
 
 ## Testing
 
 - Vitest on the pure modules: no skipped strings and correct up/down alternation in every
   step's sequence; fret maths across all strings and window starts (each note exactly once
   per string per window); unlock and completion rules for each step; storage round-trip,
-  corrupt JSON, and unknown version.
+  corrupt JSON, and unknown version; the metronome against a fake audio clock (beat
+  count and order, stop/restart, latency alignment, skipped late beats).
 - Manual browser check of the metronome timing, cue display, chart toggle and the
   phone-width layout.
 
