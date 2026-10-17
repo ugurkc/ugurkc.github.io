@@ -41,7 +41,7 @@ Shared rules, every step:
 | 3 | The 10 accidentals (C♯ D♭ D♯ E♭ F♯ G♭ G♯ A♭ A♯ B♭) at 40 BPM; tip "A♯ = find A, up one fret" / "B♭ = find B, down one fret". A♯ and B♭ are separate items | 3 rounds | Each accidental clean once at 40 |
 | 4 | Two notes (picked or random; naturals, optionally accidentals): first note 6→1, second 1→6, no pause | 3 rounds of the pair | Player marks "this feels easy" |
 | 5 | App shuffles the 7 naturals (e.g. D F C E A G B) and shows the row; alternate up/down per note, no pause | one pass (42 beats) | One clean pass at 40 |
-| 6 | Steps 2–5 again with rising tempo; after a clean set the app suggests +4 BPM | per step | Step 5 clean at ≥ 80 BPM |
+| 6 | Steps 2–5 again with rising tempo; starts at that step's best clean tempo; after a clean set the app suggests +4 BPM | per step | Step 5 clean at ≥ 80 BPM |
 
 After each set the metronome stops and the app asks **Clean? Yes / No**. Yes
 records the item; No just lets the player go again.
@@ -56,8 +56,11 @@ records the item; No just lets the player go again.
 - **Chart toggle:** full note chart for the current window, no highlighting. Off by
   default; remembered.
 - **Metronome:** Web Audio clicks scheduled ahead of time (lookahead scheduler, not
-  `setInterval` per beat) for steady timing; one-bar count-in; accent click when the note
-  changes; visual pulse on each beat.
+  `setInterval` per beat) for steady timing; one-bar count-in; accent click at the start of each
+  6-string run; visual pulse on each beat. Cues fire when the click is audible (output
+  latency included); Stop silences clicks already queued; one shared AudioContext.
+- **Clean prompt:** takes focus itself rather than its Yes button, so a stray Space or
+  Enter can never record a clean set.
 - **Footer:** the credit line above.
 
 ## Progress and override
@@ -69,7 +72,8 @@ records the item; No just lets the player go again.
   A nudge, not a gate.
 - Locked steps stay clickable: opening one shows "The method asks you to do the steps in
   order — continue anyway?" then lets the player through.
-- "Reset progress" with a confirmation.
+- "Reset progress" with a confirmation. It clears ticks, best tempos and the current step;
+  it keeps the chart and fret-window settings and the practice-time log.
 - Every storage read/write is wrapped in try/catch; unreadable or unknown-version data
   falls back to fresh progress, and the app works with storage unavailable.
 
