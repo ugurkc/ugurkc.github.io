@@ -62,7 +62,8 @@ records the item; No just lets the player go again.
 - **Step 0 (positions):** note chips (7 naturals; a "Sharps & flats" switch adds five
   enharmonic chips such as C♯/D♭), then one large chart: strings 1–6 as rows, the 12
   frets of the current window as columns, fret numbers above, and a marked dot carrying
-  the note name at every position of the chosen note. No metronome, no Start button.
+  the note name at every position of the chosen note, and a fret-window select beside the
+  sharps switch. No metronome; a "Start step 1" button only moves to step 1.
 - **Chart toggle:** full note chart for the current window, no highlighting. Off by
   default; remembered. Hidden on step 0, which has its own chart; the fret-window select
   stays and drives the step 0 chart too.
