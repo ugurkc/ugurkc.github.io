@@ -1,4 +1,4 @@
-# Fretboard — practice app design
+# Fretboard Mastery — practice app design
 
 **Date:** 2026-10-17
 **Status:** Approved
@@ -15,8 +15,8 @@ No other attribution.
 
 ## Where it lives
 
-- New repo `ugurkc/fretboard`, deployed at `ugurkc.github.io/fretboard/`.
-- Stack as the other pieces: Vite + React + TypeScript, Vitest, `base: '/fretboard/'`,
+- New repo `ugurkc/fretboard-mastery`, deployed at `ugurkc.github.io/fretboard-mastery/`.
+- Stack as the other pieces: Vite + React + TypeScript, Vitest, `base: '/fretboard-mastery/'`,
   deploy workflow copied from movements (test → build → deploy-pages).
 - No Sveltia CMS: there is no editable prose. (The `/blog` scaffold minus the admin
   steps.)
@@ -39,11 +39,11 @@ Shared rules, every step:
 | 1 | One natural note, rounds 6→1→6, self-paced (Space / tap advances) | 3 rounds | Each of the 7 naturals clean, two full passes |
 | 2 | Same, metronome at 40 BPM | 3 rounds | Each natural clean once at 40 |
 | 3 | The 10 accidentals (C♯ D♭ D♯ E♭ F♯ G♭ G♯ A♭ A♯ B♭) at 40 BPM; tip "A♯ = find A, up one fret" / "B♭ = find B, down one fret". A♯ and B♭ are separate items | 3 rounds | Each accidental clean once at 40 |
-| 4 | Two notes (picked or random; naturals, optionally accidentals): first note 6→1, second 1→6, no pause, looping | until stopped | Player marks "this feels easy" |
+| 4 | Two notes (picked or random; naturals, optionally accidentals): first note 6→1, second 1→6, no pause | 3 rounds of the pair | Player marks "this feels easy" |
 | 5 | App shuffles the 7 naturals (e.g. D F C E A G B) and shows the row; alternate up/down per note, no pause | one pass (42 beats) | One clean pass at 40 |
 | 6 | Steps 2–5 again with rising tempo; after a clean set the app suggests +4 BPM | per step | Step 5 clean at ≥ 80 BPM |
 
-After each finite set the metronome stops and the app asks **Clean? Yes / No**. Yes
+After each set the metronome stops and the app asks **Clean? Yes / No**. Yes
 records the item; No just lets the player go again.
 
 ## Screen
@@ -62,7 +62,7 @@ records the item; No just lets the player go again.
 
 ## Progress and override
 
-- Saved in `localStorage` under a versioned key (`fretboard:v1`): per-step item
+- Saved in `localStorage` under a versioned key (`fretboard-mastery:v1`): per-step item
   checkmarks (step 1 per pass), current step, best clean BPM for steps 2–5, step 4
   "easy" flag, practice seconds per calendar day.
 - "Practised today: 3m 20s" counter (time with the metronome or step-1 session running).
