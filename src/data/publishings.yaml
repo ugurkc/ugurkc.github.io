@@ -7,3 +7,8 @@
   description: "An interactive essay on decisions under uncertainty — pitch ad campaigns, run a noisy trial by hand, then watch multi-armed bandit strategies find the winner for you."
   date: "2026-08-24"
   url: "/bandits/"
+
+- title: "Fretboard Mastery"
+  description: "A practice app for learning every note on the guitar fretboard, five minutes a day: a metronome, a cue for every beat, and six steps from one note at your own pace to all seven at 80 BPM."
+  date: "2026-10-17"
+  url: "/fretboard-mastery/"
