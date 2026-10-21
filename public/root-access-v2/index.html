@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#07080C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Root Access">
+<style>
+:root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<title>Root Access</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&amp;family=Share+Tech+Mono&amp;family=Silkscreen:wght@400;700&amp;display=swap">
+<style>
+/* Layout: a column — thin HUD, the room (takes the leftover height), a big HACK button, then a compact horizontal strip of job tiles. Nothing overlaps the room. Single dark look by choice. */
+:root {
+  --bg: #07080C;
+  --panel: rgba(17, 20, 29, .94);
+  --panel-solid: #11141D;
+  --line: #1E2330;
+  --line-2: #2A3142;
+  --fg: #ECE8EA;
+  --muted: #9AA3B5;
+  --red: #D6332B;
+  --red-ink: #FF8A80;
+  --cyan: #7FE3E0;
+  --cyan-deep: #0F1A1D;
+  --cyan-line: #2B5A5A;
+  --amber: #F3C66B;
+  --font-display: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-display); overflow: hidden; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+
+.app { height: 100%; max-width: 520px; margin: 0 auto; position: relative; overflow: hidden; background: var(--bg); display: flex; flex-direction: column; }
+.app.shake { animation: shake .28s cubic-bezier(.36,.07,.19,.97) both; }
+.app.combo::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 70px rgba(214,51,43,.45); animation: flash .35s ease-out both; z-index: 20; }
+
+/* hud */
+.hud { flex-shrink: 0; padding: 8px var(--gr) 6px var(--gl); display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid var(--line); }
+.hud-row { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-mark { width: 8px; height: 15px; background: var(--red); flex-shrink: 0; }
+.brand-name { font-size: 17px; font-weight: 700; letter-spacing: 0.24em; }
+.credits { display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
+.credits b { font-family: var(--font-mono); font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.credits span { font-family: var(--font-mono); font-size: 12px; color: var(--cyan); }
+.icon-btn { justify-self: end; width: 40px; height: 40px; border: 1px solid var(--line-2); background: transparent; border-radius: 10px; color: var(--muted); display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; }
+.meters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.meter { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.meter-head { display: flex; justify-content: space-between; gap: 6px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; }
+.meter-head .l { color: var(--muted); white-space: nowrap; }
+.meter-head .r { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar { height: 5px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
+.bar > span { display: block; height: 100%; transition: width .3s ease; }
+.bar.rep > span { background: var(--red); }
+.bar.comfort > span { background: var(--amber); }
+.meter.rep .r { color: var(--red-ink); }
+.meter.comfort .r { color: var(--amber); }
+
+/* room */
+.room { position: relative; flex: 1; min-height: 120px; user-select: none; touch-action: manipulation; }
+.room svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.room .code { opacity: .85; }
+.room.busy .code { animation: flick 1.1s steps(3) infinite; }
+.room.typing .code { animation: flick .18s steps(2) 2; }
+.slot-empty, .slot-item { cursor: pointer; }
+.slot-empty .ring { animation: slotpulse 2.4s ease-in-out infinite; }
+.slot-item.cool { opacity: .55; }
+.pops { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.pop { position: absolute; font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--cyan); animation: rise .9s ease-out forwards; white-space: nowrap; text-shadow: 0 0 8px rgba(127,227,224,.5); transform: translateX(-50%); }
+.pop.money { font-size: 16px; }
+.pop.bonus { font-size: 32px; color: #fff; text-shadow: 0 0 14px rgba(255,106,95,.95), 0 0 2px #D6332B; animation: risebig 1.4s ease-out forwards; z-index: 2; }
+.pop.focus { color: var(--amber); text-shadow: 0 0 8px rgba(243,198,107,.5); }
+.pop.warn { color: var(--red-ink); text-shadow: none; }
+
+/* hack button */
+.hackzone { flex-shrink: 0; padding: 8px var(--gr) 6px var(--gl); }
+.hack { width: 100%; height: 68px; border-radius: 14px; border: 1px solid var(--red); background: linear-gradient(#3A1316, #1E0E10); color: #fff; display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 7px; padding: 0 14px; touch-action: manipulation; user-select: none; -webkit-user-select: none; transition: box-shadow .2s ease; }
+.hack:active { transform: scale(.985); background: linear-gradient(#4A171B, #26100F); }
+.hack-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.hack .big { font-size: 20px; font-weight: 700; letter-spacing: 0.26em; }
+.hack .sub { font-family: var(--font-mono); font-size: 11px; color: #FFC2BC; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.segs { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; height: 9px; }
+.segs span { display: block; border-radius: 2px; background: rgba(255,138,128,.10); border: 1px solid rgba(214,51,43,.45); transition: background .08s ease; }
+.segs span.on { background: var(--red); border-color: #FF6A5F; box-shadow: 0 0 6px rgba(214,51,43,.7); }
+.segs.blaze span { background: #FF6A5F; border-color: #fff; box-shadow: 0 0 10px rgba(255,106,95,.95), 0 0 20px rgba(214,51,43,.7); animation: blaze .75s ease-out; }
+.hack.full { border-color: #FF8A80; box-shadow: 0 0 0 3px rgba(214,51,43,.3), 0 0 22px rgba(214,51,43,.4); }
+.hack.blaze { border-color: #fff; box-shadow: 0 0 0 4px rgba(255,106,95,.5), 0 0 40px rgba(214,51,43,.75); }
+
+/* job dock: collapsed = one row of progress rings; open = full-width rows that scroll, and the room shrinks to make space */
+.dock { flex-shrink: 0; border-top: 1px solid var(--line); background: #0A0C12; padding-bottom: env(safe-area-inset-bottom, 0px); display: flex; flex-direction: column; max-height: 46%; min-height: 0; }
+.dock-head { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 6px var(--gr) 6px var(--gl); background: transparent; border: none; text-align: left; flex-shrink: 0; }
+.dock-head .chev { color: var(--muted); transition: transform .2s ease; flex-shrink: 0; }
+.dock.open .dock-head .chev { transform: rotate(180deg); }
+.rings { display: flex; gap: 6px; overflow: hidden; min-width: 0; flex: 1; }
+.dock.open .rings { display: none; }
+.dock-sum { font-family: var(--font-mono); font-size: 11px; color: var(--cyan); white-space: nowrap; flex-shrink: 0; }
+.dock-sum.ready { color: var(--amber); }
+.dock.open .dock-sum { flex: 1; }
+.dock-body { display: none; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 var(--gr) 12px var(--gl); flex-direction: column; gap: 8px; }
+.dock.open .dock-body { display: flex; }
+.dock-tools { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.buyx { height: 30px; padding: 0 12px; border: 1px solid var(--line-2); background: transparent; border-radius: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--amber); letter-spacing: 0.06em; }
+.rows { display: flex; flex-direction: column; gap: 6px; }
+.row { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 8px; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 12px; }
+.row.best { border-color: var(--cyan-line); background: var(--cyan-deep); }
+.row.locked { border-style: dashed; opacity: .85; }
+.ringbtn { padding: 0; border: none; background: transparent; width: 46px; height: 46px; border-radius: 50%; display: block; }
+.ringbtn:disabled { cursor: default; }
+.ring { display: block; flex-shrink: 0; }
+.ring .rt { fill: #0E1119; stroke: var(--line-2); stroke-width: 3; }
+.ring .rp { fill: none; stroke: var(--cyan); stroke-width: 3; stroke-linecap: round; }
+.ring text { font-family: var(--font-mono); font-size: 8.5px; font-weight: 700; fill: var(--fg); letter-spacing: .03em; }
+.ring.focus .rp { stroke: var(--amber); }
+.ring.auto .rt { stroke: var(--cyan-line); }
+.ring.lock .rp { stroke: var(--red); }
+.ring.lock text { fill: var(--red-ink); }
+.ring.runnable .rt { stroke: var(--cyan); animation: ringpulse 1.4s ease-in-out infinite; }
+.ring.runnable text { fill: var(--cyan); }
+.row-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.row-top { display: flex; gap: 8px; align-items: baseline; font-size: 14px; font-weight: 600; }
+.row-top .n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-top .lv { font-family: var(--font-mono); font-size: 11px; color: var(--muted); flex-shrink: 0; }
+.row-meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-meta .p { color: var(--cyan); font-weight: 700; }
+.fx { align-self: flex-start; background: transparent; border: none; padding: 0; font-family: var(--font-mono); font-size: 11px; color: var(--amber); text-decoration: underline; text-underline-offset: 2px; min-height: 20px; }
+.fx:disabled { color: var(--muted); text-decoration: none; cursor: default; opacity: .7; }
+.up { height: 48px; min-width: 80px; padding: 0 10px; border: 1px solid #6B5A33; background: rgba(243,198,107,.08); border-radius: 10px; color: var(--amber); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-family: var(--font-mono); }
+.up .un { font-size: 13px; font-weight: 700; }
+.up .uc { font-size: 11px; color: #E8D3A0; font-variant-numeric: tabular-nums; }
+.up:disabled { opacity: .4; cursor: default; }
+.up.pulse:not(:disabled) { animation: glowpulse-c 1.4s ease-in-out infinite; }
+
+/* sheets */
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--panel); backdrop-filter: blur(6px); border-top: 1px solid var(--line-2); border-radius: 16px 16px 0 0; display: flex; flex-direction: column; max-height: 60%; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.sheet-title { display: flex; align-items: center; gap: 10px; padding: 14px var(--gr) 6px var(--gl); flex-shrink: 0; }
+.sheet-title h2 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: 0.04em; flex: 1; min-width: 0; }
+.sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 var(--gr) 14px var(--gl); display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; }
+.item.owned { border-color: var(--cyan-line); }
+.item-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.item-name { font-size: 14px; font-weight: 600; }
+.item-eff { font-family: var(--font-mono); font-size: 11px; color: #B4BBC8; }
+.btn { height: 44px; min-width: 64px; padding: 0 12px; background: transparent; color: var(--fg); border: 1px solid var(--line-2); border-radius: 10px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; flex-shrink: 0; }
+.btn.cyan { color: var(--cyan); border-color: var(--cyan); }
+.btn.red { background: var(--red); border-color: var(--red); color: #fff; }
+.btn.small { height: 34px; min-width: 0; padding: 0 10px; font-size: 11px; }
+.btn:disabled { opacity: .4; cursor: default; }
+.note { font-size: 13px; color: var(--muted); line-height: 1.45; margin: 0; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-family: var(--font-mono); font-size: 13px; }
+.kv span:nth-child(even) { color: var(--cyan); text-align: right; }
+.toast { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); z-index: 30; background: var(--panel-solid); border: 1px solid var(--cyan-line); color: var(--fg); font-size: 13px; padding: 8px 14px; border-radius: 10px; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,.5); pointer-events: none; }
+.modal { position: absolute; inset: 0; z-index: 40; background: rgba(5,6,10,.82); display: flex; align-items: center; justify-content: center; padding: 20px var(--gr) 20px var(--gl); }
+.modal-card { width: 100%; max-width: 380px; background: var(--panel-solid); border: 1px solid var(--line-2); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; max-height: 100%; overflow-y: auto; }
+.modal-card h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.04em; text-wrap: balance; }
+.modal-card p { margin: 0; font-size: 14px; line-height: 1.5; color: #C9CED8; }
+.modal-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.modal-actions .btn { flex: 1; }
+
+@keyframes flick { 0% { opacity: .9 } 50% { opacity: .45 } 100% { opacity: .9 } }
+@keyframes risebig { 0% { transform: translate(-50%, 0) scale(.5); opacity: 1 } 18% { transform: translate(-50%, -8px) scale(1.2); opacity: 1 } 100% { transform: translate(-50%, -64px) scale(1); opacity: 0 } }
+@keyframes blaze { 0% { filter: brightness(2.2) } 100% { filter: brightness(1) } }
+@keyframes ringpulse { 50% { stroke-opacity: .3 } }
+@keyframes rise { from { transform: translate(-50%, 0); opacity: 1 } to { transform: translate(-50%, -38px); opacity: 0 } }
+@keyframes slotpulse { 0%,100% { opacity: .45 } 50% { opacity: 1 } }
+@keyframes glowpulse-c { 0%,100% { box-shadow: 0 0 0 0 rgba(127,227,224,0) } 50% { box-shadow: 0 0 0 4px rgba(127,227,224,.22) } }
+@keyframes shake { 10%, 90% { transform: translate(-1px, 0) } 20%, 80% { transform: translate(2px, 1px) } 30%, 50%, 70% { transform: translate(-3px, -1px) } 40%, 60% { transform: translate(3px, 1px) } }
+@keyframes flash { from { opacity: 1 } to { opacity: 0 } }
+@keyframes pulse { from { transform: scale(1.25) } to { transform: scale(1) } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
+[hidden] { display: none !important; }
+/* ===== pixel skin ===== */
+:root {
+  --font-display: 'Chakra Petch', 'Rajdhani', system-ui, sans-serif;
+  --font-mono: 'Share Tech Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-pixel: 'Silkscreen', 'Share Tech Mono', monospace;
+  --notch: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+}
+*, *::before, *::after { border-radius: 0 !important; }
+.app::before { content: ""; position: absolute; inset: 0; z-index: 60; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.2) 2px 3px); }
+.app.shake { animation: shake .3s steps(6) both; }
+.app.combo::after { box-shadow: inset 0 0 0 6px rgba(214,51,43,.9), inset 0 0 0 12px rgba(214,51,43,.35); animation: flash .4s steps(4) both; }
+
+.stage { position: absolute; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: crisp-edges; image-rendering: pixelated; }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.slot-empty .ring { animation: slotpulse 1.2s steps(2) infinite; }
+
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; }
+.hud { border-bottom: 3px solid var(--line-2); padding-top: 10px; }
+.brand-mark { width: 8px; height: 8px; box-shadow: 8px 0 0 var(--cyan), 0 8px 0 var(--cyan); margin-right: 8px; }
+.brand-name { font-family: var(--font-pixel); font-size: 11px; font-weight: 700; letter-spacing: .08em; line-height: 1.15; display: flex; flex-direction: column; text-shadow: 1px 0 0 var(--red), -1px 0 0 rgba(127,227,224,.75); }
+.credits b { font-family: var(--font-mono); font-size: 34px; font-weight: 400; line-height: 1; text-shadow: 3px 3px 0 #000, 0 0 14px rgba(127,227,224,.25); }
+.credits span { font-family: var(--font-mono); font-size: 13px; }
+.icon-btn { border-width: 2px; clip-path: var(--notch); }
+.meter-head { font-family: var(--font-mono); font-size: 11px; align-items: baseline; letter-spacing: .06em; }
+.meter-head .mono { font-size: 14px; color: var(--fg); }
+.bar { height: 10px; border: 2px solid var(--line-2); background: #0A0C12; position: relative; }
+.bar::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 6px, #0A0C12 6px 8px); pointer-events: none; }
+.bar > span { transition: width .3s steps(3); }
+
+.hackzone { padding-top: 10px; }
+.hack { height: 76px; border: 3px solid var(--red); clip-path: var(--notch); background: #2A0E10; box-shadow: inset -4px -4px 0 #170708, inset 4px 4px 0 #4A1A1D; gap: 8px; transition: none; }
+.hack:active { transform: translateY(2px); background: #3A1214; box-shadow: inset 4px 4px 0 #170708; }
+.hack .big { font-family: var(--font-pixel); font-size: 22px; letter-spacing: .14em; text-shadow: 3px 3px 0 #000; }
+.hack .sub { font-family: var(--font-mono); font-size: 13px; }
+.segs { height: 12px; gap: 4px; }
+.segs span { border-width: 2px; transition: none; }
+.segs span.on { box-shadow: inset -2px -2px 0 #8A1B16; }
+.segs.blaze span { box-shadow: inset 0 0 0 2px #FFD2CC; animation: blaze .75s steps(4); }
+.hack.full { border-color: #FF8A80; box-shadow: inset -4px -4px 0 #170708, inset 4px 4px 0 #6A2226; }
+.hack.blaze { border-color: #fff; background: #5A1A1D; box-shadow: inset 0 0 0 3px #FF6A5F; }
+
+.dock { border-top: 3px solid var(--line-2); }
+.dock-sum { font-family: var(--font-mono); font-size: 13px; }
+.dock-tools .note { font-size: 13px !important; }
+.buyx { font-family: var(--font-mono); font-size: 12px; border: 2px solid #8A7440; clip-path: var(--notch); background: #1A150A; }
+.row { border: 2px solid var(--line); clip-path: var(--notch); box-shadow: inset -3px -3px 0 rgba(0,0,0,.35), inset 3px 3px 0 rgba(255,255,255,.03); padding: 8px; }
+.row.best { border-color: var(--cyan-line); }
+/* the whole row fills left to right as the job runs */
+.row { position: relative; }
+.row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p, 0) * 100%); background: rgba(127,227,224,.16); box-shadow: inset -3px 0 0 rgba(127,227,224,.55); pointer-events: none; }
+.row.locked::before { background: rgba(214,51,43,.16); box-shadow: inset -3px 0 0 rgba(214,51,43,.6); }
+.row > * { position: relative; }
+.row-top { font-family: var(--font-display); font-size: 15px; font-weight: 600; }
+.row-top .lv, .row-meta, .fx { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.25; }
+.fx { white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.ring text { font-family: var(--font-mono); font-size: 8.5px; font-weight: 400; }
+.ring .rt, .ring .rp { stroke-width: 4; stroke-linecap: butt; }
+.ring.runnable .rt { animation: ringpulse 1s steps(2) infinite; }
+.up { min-width: 104px; border: 2px solid #8A7440; clip-path: var(--notch); background: #2A2210; box-shadow: inset -3px -3px 0 #15110A, inset 3px 3px 0 #4A3D1E; }
+.up .un { font-family: var(--font-mono); font-size: 12px; }
+.up .uc { font-family: var(--font-mono); font-size: 14px; }
+.up.pulse:not(:disabled) { animation: none; border-color: var(--amber); }
+.up:active, .ringbtn:active, .btn:active, .buyx:active, .icon-btn:active { transform: translateY(2px); }
+
+.btn { font-family: var(--font-mono); font-size: 12px; font-weight: 400; letter-spacing: .06em; border-width: 2px; clip-path: var(--notch); box-shadow: inset -3px -3px 0 rgba(0,0,0,.4), inset 3px 3px 0 rgba(255,255,255,.06); }
+.btn.small { font-size: 12px; }
+.sheet { border-top: 3px solid var(--line-2); backdrop-filter: none; background: #0E1119; }
+.sheet-title h2 { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+.item { border-width: 2px; clip-path: var(--notch); }
+.item-name { font-size: 15px; font-weight: 600; }
+.item-eff { font-family: var(--font-mono); font-size: 12.5px; }
+.note { font-size: 14px; }
+.kv { font-family: var(--font-mono); font-size: 14px; }
+.toast { font-family: var(--font-mono); font-size: 14px; border-width: 2px; clip-path: var(--notch); box-shadow: none; }
+.modal-card { border: 3px solid var(--line-2); clip-path: var(--notch); }
+.modal-card h2 { font-family: var(--font-display); font-size: 20px; line-height: 1.25; }
+.modal-card p { font-size: 15px; }
+
+.pop { font-family: var(--font-mono); font-size: 16px; font-weight: 400; text-shadow: 2px 2px 0 #000; animation-timing-function: steps(8); }
+.pop.money { font-size: 18px; }
+.pop.bonus { font-family: var(--font-display); font-size: 40px; font-weight: 700; color: #fff; text-shadow: 3px 3px 0 #D6332B, 6px 6px 0 #000; animation: risebig 1.4s steps(12) forwards; }
+.pop.comfort { color: var(--amber); text-shadow: 2px 2px 0 #000; }
+/* comfort boost segment and event bubble */
+.bar.comfort { display: flex; }
+.bar.comfort > span { flex-shrink: 0; }
+.bar.comfort > span.boost { background: #FFE2A0; box-shadow: 0 0 6px rgba(243,198,107,.8); }
+.evb { position: absolute; z-index: 4; transform: translate(-50%, -100%); width: max-content; max-width: 220px; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; text-align: left; padding: 8px 10px; background: #1A150A; border: 2px solid var(--amber); clip-path: var(--notch); box-shadow: inset -3px -3px 0 #0E0B05, inset 3px 3px 0 #3A2F14; animation: evbob 1s steps(2) infinite; }
+.evb .evq { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--fg); line-height: 1.2; }
+.evb .eva { font-family: var(--font-mono); font-size: 12px; color: var(--amber); }
+.evb .eva i { font-style: normal; color: var(--muted); margin-left: 4px; }
+.evb:active { transform: translate(-50%, calc(-100% + 2px)); }
+.pop.comfort.big { font-size: 20px; }
+@keyframes evbob { 50% { margin-top: -3px; } }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="hud">
+    <div class="hud-row">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name"><span>ROOT</span><span>ACCESS</span></span></div>
+      <div class="credits"><b id="credits">$0</b><span id="cps">+$0/s</span></div>
+      <button class="icon-btn" data-action="settings" aria-label="Playtest counters and settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg>
+      </button>
+    </div>
+    <div class="meters">
+      <div class="meter rep">
+        <div class="meter-head"><span class="l">REP <span id="repval" class="mono">0</span></span><span class="r" id="repnext">???</span></div>
+        <div class="bar rep"><span id="repbar" style="width:0%"></span></div>
+      </div>
+      <div class="meter comfort">
+        <div class="meter-head"><span class="l">COMFORT <span id="comfortval" class="mono">0</span></span><span class="r" id="comfortmult">×1.00 pay</span></div>
+        <div class="bar comfort"><span id="comfortbar" style="width:0%"></span><span id="comfortboost" class="boost" style="width:0%"></span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="room" id="room">
+    <div class="stage" id="stage">
+    <canvas id="px0" aria-hidden="true"></canvas><canvas id="px1" aria-hidden="true"></canvas>
+    <svg id="roomsvg" viewBox="0 10 390 320" preserveAspectRatio="none" aria-label="Your room. Tap a marked spot to place an item.">
+      <g id="art" visibility="hidden">
+      <defs>
+        <radialGradient id="cy" cx="270" cy="150" r="95" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7FE3E0" stop-opacity="0.28"></stop><stop offset="1" stop-color="#7FE3E0" stop-opacity="0"></stop></radialGradient>
+        <radialGradient id="rd" cx="105" cy="135" r="100" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#D6332B" stop-opacity="0.3"></stop><stop offset="1" stop-color="#D6332B" stop-opacity="0"></stop></radialGradient>
+      </defs>
+      <polygon points="195,150 25,235 195,320 365,235" fill="#10131C"></polygon>
+      <path d="M110,192.5 L280,277.5 M67.5,213.75 L237.5,298.75 M280,192.5 L110,277.5 M322.5,213.75 L152.5,298.75" stroke="#191D29" stroke-width="1" fill="none"></path>
+      <polygon points="195,150 25,235 25,105 195,20" fill="#161A26"></polygon>
+      <polygon points="195,150 365,235 365,105 195,20" fill="#121520"></polygon>
+      <path d="M246,175.5 L246,45.5 M288.5,196.75 L288.5,66.75 M331,218 L331,88" stroke="#1B2030" stroke-width="1.2" fill="none"></path>
+      <path d="M195,20 L25,105 M195,20 L365,105 M195,20 L195,150" stroke="#262B3A" stroke-width="1.5" fill="none"></path>
+      <rect x="0" y="0" width="390" height="330" fill="url(#rd)"></rect>
+      <rect x="0" y="0" width="390" height="330" fill="url(#cy)"></rect>
+      <polygon points="127,62 67.5,91.75 67.5,101.75 127,72" fill="#D6332B"></polygon>
+      <polygon points="135.5,144.75 76,174.5 76,114.5 135.5,84.75" fill="#07080C" stroke="#D6332B" stroke-width="1.5"></polygon>
+      <path d="M96,128 L96,133 M110,118 L110,124 M119,127 L119,132 M88,147 L88,152 M126,108 L126,112" stroke="#FF8A80" stroke-width="2.5" fill="none"></path>
+      <polygon points="128,176 168,156 168,164 128,184" fill="#1B1F2B"></polygon>
+      <polygon points="128,184 168,164 168,166 128,186" fill="#0E1118"></polygon>
+      <polygon points="300,96 312,102 312,116 300,110" fill="#2A2F40"></polygon>
+      <path d="M303,102 L306,103.5 M308,104.5 L311,106" stroke="#7FE3E0" stroke-width="2.5" fill="none"></path>
+      <polygon points="118,214 172,187 214,208 160,235" fill="#D6332B" opacity="0.35"></polygon>
+      <polygon points="254.5,151.75 297,173 271.5,185.75 229,164.5" fill="#5E4E47"></polygon>
+      <polygon points="229,164.5 271.5,185.75 271.5,189.75 229,168.5" fill="#3A302C"></polygon>
+      <polygon points="271.5,185.75 297,173 297,177 271.5,189.75" fill="#2C2522"></polygon>
+      <path d="M231,168 L231,192 M270,189 L270,214 M295,177 L295,201" stroke="#1A1D27" stroke-width="3" fill="none"></path>
+      <path d="M260.5,155 L260.5,165 M279,165 L279,174" stroke="#1A1D27" stroke-width="2.5" fill="none"></path>
+      <polygon points="252.8,122 268.1,132.15 268.1,160.15 252.8,150" fill="#0E1420" stroke="#2A3142" stroke-width="1.5"></polygon>
+      <polygon points="271.5,134.35 286.8,142 286.8,170 271.5,162.35" fill="#0E1420" stroke="#2A3142" stroke-width="1.5"></polygon>
+      <path class="code" d="M255,129 L264,133.5 M255,134 L262,137.5 M255,139 L265,144 M255,144 L260,146.5 M255,149 L263,153" stroke="#7FE3E0" stroke-width="1.6" fill="none"></path>
+      <path class="code" d="M273.5,141 L283,145.75 M273.5,146 L280,149.25 M273.5,151 L284,156.25 M273.5,156 L279,158.75 M273.5,161 L282,165.5" stroke="#7FE3E0" stroke-width="1.6" fill="none"></path>
+      <circle cx="265.5" cy="129" r="1.4" fill="#FF6A5F"></circle>
+      <circle cx="284.5" cy="143.5" r="1.4" fill="#FF6A5F"></circle>
+      <polygon points="252,170 266,177 262,179 248,172" fill="#C9D2DC" opacity="0.8"></polygon>
+      <rect x="282" y="172" width="5" height="6" rx="1" fill="#2A2F40"></rect>
+      <path d="M238,198 L238,214 M238,214 L226,220 M238,214 L250,221 M238,214 L238,224" stroke="#1E2230" stroke-width="2.5" stroke-linecap="round" fill="none"></path>
+      <polygon points="222,190 240,182 256,190 238,198" fill="#1B1F2B"></polygon>
+      <polygon points="218,160 230,154 232,190 220,196" fill="#1E2231"></polygon>
+      <polygon points="226,186 234,166 248,164 256,182 244,192" fill="#262B3B"></polygon>
+      <polygon points="248,170 262,172 263,176 250,178" fill="#2E3446"></polygon>
+      <polygon points="236,148 246,144 254,152 252,164 240,168 234,160" fill="#2E3446"></polygon>
+      <polygon points="246,144 254,152 252,164 247,156" fill="#3A4157"></polygon>
+      <polygon points="70,228 115,250 115,262 70,240" fill="#141722"></polygon>
+      <polygon points="115,250 170,222 170,234 115,262" fill="#1A1E2B"></polygon>
+      <polygon points="70,228 125,200 170,222 115,250" fill="#2A3042"></polygon>
+      <polygon points="88,224 120,208 150,222 118,240" fill="#343B52"></polygon>
+      <polygon points="120,208 150,222 140,214" fill="#3F4762"></polygon>
+      <rect x="182" y="226" width="5" height="9" rx="1.5" fill="#3A4157"></rect>
+      <rect x="190" y="229" width="5" height="9" rx="1.5" fill="#3A4157"></rect>
+      <polygon points="334.4,124.7 358.2,136.6 337.8,146.8 314,134.9" fill="#232838"></polygon>
+      <path d="M322,134 L340,143 M326,132 L344,141 M330,130 L348,139" stroke="#151925" stroke-width="1.5" fill="none"></path>
+      <polygon points="314,134.9 337.8,146.8 337.8,241.8 314,229.9" fill="#171B27"></polygon>
+      <path d="M314,157 L337.8,169 M314,180 L337.8,192 M314,203 L337.8,215" stroke="#232838" stroke-width="1.2" fill="none"></path>
+      <path class="code" d="M317,147 L321,149 M317,170 L321,172 M317,193 L321,195 M317,216 L321,218" stroke="#7FE3E0" stroke-width="2.5" fill="none"></path>
+      <path d="M326,152 L334,156 M326,175 L334,179 M326,198 L334,202 M326,221 L334,225" stroke="#FF6A5F" stroke-width="2" fill="none"></path>
+      </g>
+      <g id="itemart" visibility="hidden"></g>
+      <g id="slots"></g>
+    </svg>
+    </div>
+    <div class="pops" id="pops"></div>
+    <button class="evb" id="evb" data-action="event" hidden></button>
+  </div>
+
+  <div class="hackzone">
+    <button class="hack" id="hack" data-action="hack" aria-label="Hack. Each press earns money and fills one of ten segments; a full bar pays a bonus.">
+      <span class="hack-row"><span class="big">HACK</span><span class="sub" id="hacksub">+$1 · bonus at 10</span></span>
+      <span class="segs" id="segs" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+    </button>
+  </div>
+
+  <section class="dock open" id="dock" aria-label="Jobs">
+    <button class="dock-head" data-action="dock" aria-expanded="true"><span class="label">Jobs</span><span class="rings" id="rings"></span><span class="dock-sum" id="jobsum"></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+    <div class="dock-body">
+      <div class="dock-tools"><span class="note" style="font-size:12px">Tap a ring to run a job</span><button class="buyx" data-action="buyx" id="buyx">BUY ×1</button></div>
+      <div class="rows" id="tiles"></div>
+    </div>
+  </section>
+
+  <section class="sheet" id="slotsheet" hidden aria-label="Item slot">
+    <div class="sheet-title"><h2 id="slottitle">Slot</h2><button class="btn small" data-action="closesheets">CLOSE</button></div>
+    <div class="sheet-body" id="slotbody"></div>
+  </section>
+  <section class="sheet" id="settingsheet" hidden aria-label="Settings">
+    <div class="sheet-title"><h2>Playtest counters</h2><button class="btn small" data-action="closesheets">CLOSE</button></div>
+    <div class="sheet-body" id="settingsbody"></div>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+  <div class="modal" id="modal" hidden><div class="modal-card" id="modalcard" role="dialog" aria-modal="true"></div></div>
+</div>
+
+<script>
+(function(){
+/* Economy: AdVenture-Capitalist-style. Each job has levels; level n costs base × r^n (r = 1.07–1.15), pays base × level,
+   and doubles at 25/50/100/200/300/400 levels. Fixers automate a job. Items multiply everything. */
+const JOBS = [
+  { id:'wifi', name:'Crack a Wi-Fi password', time:2,   pay:1,      cost:4,       r:1.07, rep:1,   unlock:0,     fixer:1000 },
+  { id:'ceo',  name:"Steal a CEO's emails",   time:6,   pay:60,     cost:60,      r:1.15, rep:3,   unlock:25,    fixer:15000 },
+  { id:'dms',  name:"Leak a politician's DMs",time:12,  pay:540,    cost:720,     r:1.14, rep:10,  unlock:200,   fixer:100000 },
+  { id:'bank', name:'Drain a corrupt bank',   time:30,  pay:4320,   cost:8640,    r:1.13, rep:30,  unlock:1500,  fixer:500000 },
+  { id:'cams', name:"Blind a city's cameras", time:60,  pay:51840,  cost:103680,  r:1.12, rep:100, unlock:10000, fixer:1.2e6 },
+  { id:'sat',  name:'Hijack a satellite',     time:120, pay:622080, cost:1244160, r:1.11, rep:300, unlock:60000, fixer:1e7 }
+];
+const J = Object.fromEntries(JOBS.map(j => [j.id, j]));
+const MS = [25, 50, 100, 200, 300, 400];
+const REVEAL_AT = 0.6;
+const BUYX = [1, 10, 100, 'max'];
+
+const ITEMS = {
+  gpu:     { type:'tech',  name:'GPU rack',      cost:2500,   comfort:4,  pay:1.25,  eff:'All jobs pay +25% · +4 comfort' },
+  fiber:   { type:'tech',  name:'Fiber line',    cost:25000,  comfort:6,  speed:1.2, eff:'All jobs run 20% faster · +6 comfort' },
+  server:  { type:'tech',  name:'Server tower',  cost:250000, comfort:10, pay:1.5,   eff:'All jobs pay +50% · +10 comfort' },
+  cooler:  { type:'tech',  name:'Cooling unit',  cost:2.5e6,  comfort:15, speed:1.3, eff:'All jobs run 30% faster · +15 comfort' },
+  quantum: { type:'tech',  name:'Quantum card',  cost:5e7,    comfort:25, pay:2,     eff:'All jobs pay +100% · +25 comfort' },
+  lamp:    { type:'decor', name:'Lava lamp',     cost:500,    comfort:5,  ev:{ ask:'The lava lamp is doing a perfect swirl', act:'Watch it', boost:10, dur:30, label:'Lava swirl' } },
+  plant:   { type:'decor', name:'Plant',         cost:2500,   comfort:10, ev:{ ask:'The plant looks thirsty', act:'Water it', boost:15, dur:45, label:'Fresh air' } },
+  phones:  { type:'decor', name:'Headphones',    cost:10000,  comfort:15, ev:{ ask:'Your playlist just dropped a banger', act:'Turn it up', boost:20, dur:40, label:'In the zone' } },
+  cat:     { type:'decor', name:'Cat',           cost:50000,  comfort:25, ev:{ ask:'The cat wants your lap', act:'Let it in', boost:30, dur:45, label:'Cat on lap' } },
+  gf:      { type:'decor', name:'Girlfriend',    cost:500000, comfort:40, ev:{ ask:'Your girlfriend offers a massage', act:'Accept', boost:60, dur:40, label:'Massage' } }
+};
+/* decor events: every so often one placed decor item asks for you; accepting adds temporary comfort on top of the permanent amount */
+for (const it of Object.values(ITEMS)) it.eff = it.eff || `+${it.comfort} comfort · event: +${it.ev.boost} comfort for ${it.ev.dur}s`;
+const EV_WINDOW = 20, EV_FIRST = 15, EV_MIN = 60, EV_MAX = 120;
+const SLOTS = [
+  { id:'t1', type:'tech',  x:296, y:224, where:'floor' },
+  { id:'t2', type:'tech',  x:303, y:62,  where:'wall' },
+  { id:'t3', type:'tech',  x:262, y:244, where:'floor' },
+  { id:'d1', type:'decor', x:148, y:160, where:'shelf' },
+  { id:'d2', type:'decor', x:205, y:256, where:'floor' },
+  { id:'d3', type:'decor', x:122, y:228, where:'bed' }
+];
+const OFFLINE_CAP = 8 * 3600, SAVE_KEY = 'root-idle-v4';
+const TAP_BOOST = 0.5;
+const BAR_STEPS = 10, BAR_BONUS = 25, BAR_BOOST = 5;   /* full bar: 25 taps' worth of money, +5s on every job */
+
+const $ = id => document.getElementById(id);
+let S, sigs = {}, earnLog = [], modalQueue = [], lastPop = 0, toastTimer = 0, openSlot = null;
+let buyIdx = 0, shakeT = 0, blazeUntil = 0, dockOpen = true;
+
+function fresh(){
+  const now = Date.now();
+  return { credits:0, rep:0, jobs:{}, running:{}, slots:{}, cool:{}, bar:0, boosts:[], event:null, nextEvent: now + EV_FIRST * 1000, last: now, totalJobs:0,
+    m: { first: now, sessions: 0, days: [], taps: 0, lastSession: 0, bars: 0 } };
+}
+function js(id){ return S.jobs[id] || (S.jobs[id] = { lv:0, fixer:false }); }
+
+/* ---------- math ---------- */
+const placed = () => Object.values(S.slots).filter(Boolean).map(k => ITEMS[k]);
+const payMult = () => placed().reduce((a, it) => a * (it.pay || 1), 1);
+const speedMult = () => placed().reduce((a, it) => a * (it.speed || 1), 1);
+/* comfort: the sum of what's in the room. It only ever goes up (items can't be removed) and every point adds 1% to all earnings. */
+const comfortBase = () => placed().reduce((a, it) => a + (it.comfort || 0), 0);
+const activeBoosts = () => (S.boosts || []).filter(b => b.until > Date.now());
+const comfortBoost = () => activeBoosts().reduce((a, b) => a + b.amt, 0);
+const comfort = () => comfortBase() + comfortBoost();
+const comfortMult = () => 1 + comfort() / 100;
+function comfortMax(){
+  const best = t => Object.values(ITEMS).filter(it => it.type === t).map(it => it.comfort).sort((a, b) => b - a)
+    .slice(0, SLOTS.filter(s => s.type === t).length).reduce((a, b) => a + b, 0);
+  return best('tech') + best('decor');
+}
+function msMult(lv){ let m = 1; for (const t of MS) if (lv >= t) m *= 2; return m; }
+function nextMs(lv){ for (const t of MS) if (lv < t) return t; return null; }
+const payFor = j => j.pay * js(j.id).lv * msMult(js(j.id).lv) * payMult() * comfortMult();
+const unlocked = j => S.rep >= j.unlock || js(j.id).lv > 0;
+const nextLocked = () => JOBS.find(j => !unlocked(j)) || null;
+const runningIds = () => Object.keys(S.running);
+/* cost of the next n levels: base × r^lv × (r^n − 1)/(r − 1) */
+const costN = (j, n) => j.cost * Math.pow(j.r, js(j.id).lv) * (Math.pow(j.r, n) - 1) / (j.r - 1);
+function maxAffordable(j){
+  const lv = js(j.id).lv, c = S.credits;
+  const n = Math.floor(Math.log(c * (j.r - 1) / (j.cost * Math.pow(j.r, lv)) + 1) / Math.log(j.r));
+  return Math.max(0, n);
+}
+function buyCount(j){ const x = BUYX[buyIdx]; return x === 'max' ? Math.max(1, maxAffordable(j)) : x; }
+const incomePerSec = () => JOBS.reduce((a, j) => a + (S.running[j.id] ? payFor(j) / j.time * speedMult() : 0), 0);
+const tapMoney = () => Math.max(1, 0.25 * incomePerSec()) * comfortMult();
+
+function fmt(n){
+  if (!isFinite(n)) return '∞';
+  if (n < 1000) return (n < 10 && n % 1) ? n.toFixed(1) : String(Math.floor(n));
+  const u = ['K','M','B','T','Qa','Qi','Sx','Sp'];
+  let i = -1;
+  while (n >= 1000 && i < u.length - 1) { n /= 1000; i++; }
+  return (n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : Math.floor(n)) + u[i];
+}
+function fmtTime(s){
+  s = Math.max(0, Math.ceil(s));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+}
+function fmtDur(s){ const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h ? `${h}h ${m}m` : `${Math.max(1,m)}m`; }
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- simulation ---------- */
+function startJob(id, manual){
+  if (S.running[id] || !unlocked(J[id]) || js(id).lv < 1) return false;
+  S.running[id] = { work:0, need: J[id].time };
+  return true;
+}
+function finish(id, offline, stats){
+  const j = J[id], pay = payFor(j);
+  S.credits += pay; S.rep += j.rep; S.totalJobs++;
+  if (stats){ stats.jobs++; stats.credits += pay; }
+  if (!offline){ earnLog.push([Date.now(), pay]); popMoney(pay); }
+}
+function tick(dt, offline, stats){
+  const rt = speedMult();
+  for (const id of runningIds()){
+    const r = S.running[id];
+    r.work += dt * rt;
+    while (r.work >= r.need){
+      finish(id, offline, stats);
+      if (js(id).fixer) r.work -= r.need; else { delete S.running[id]; break; }
+    }
+  }
+  for (const j of JOBS) if (js(j.id).fixer && unlocked(j) && js(j.id).lv > 0 && !S.running[j.id]) startJob(j.id, false);
+
+}
+function simulateOffline(seconds){
+  const stats = { jobs:0, credits:0 };
+  let left = Math.min(seconds, OFFLINE_CAP);
+  while (left > 0){ const step = Math.min(1, left); tick(step, true, stats); left -= step; }
+  return stats;
+}
+function hack(){
+  const now = Date.now();
+  S.m.taps++;
+  const money = tapMoney();
+  S.credits += money;
+  earnLog.push([now, money]);
+  for (const id of runningIds()) S.running[id].work += TAP_BOOST;
+  const p = svgToScreen(262, 118);
+  popAt(p.x + (Math.random() - .5) * 60, p.y + (Math.random() - .5) * 30, '+$' + fmt(money), 'money');
+  const room = $('room');
+  tapFlickUntil = now + 90;
+  blazeUntil = 0;
+  S.bar++;
+  if (S.bar >= BAR_STEPS){
+    blazeUntil = now + 750;
+    S.bar = 0; S.m.bars = (S.m.bars || 0) + 1;
+    const bonus = money * BAR_BONUS;
+    S.credits += bonus;
+    earnLog.push([now, bonus]);
+    for (const id of runningIds()) S.running[id].work += BAR_BOOST;
+    const rr = $('room').getBoundingClientRect();
+    setTimeout(() => popAt(rr.width / 2, rr.height * 0.42, 'BONUS +$' + fmt(bonus), 'bonus'), 40);
+    const app = $('app');
+    app.classList.remove('shake', 'combo'); void app.offsetWidth; app.classList.add('shake', 'combo');
+    clearTimeout(shakeT); shakeT = setTimeout(() => app.classList.remove('shake', 'combo'), 380);
+    try { if (navigator.vibrate) navigator.vibrate([40, 50, 60]); } catch (err) {}
+  } else {
+    try { if (navigator.vibrate) navigator.vibrate(8); } catch (err) {}
+  }
+  tick(0, false);
+}
+
+/* ---------- feedback ---------- */
+function popAt(x, y, text, cls){
+  const el = document.createElement('span');
+  el.className = 'pop ' + (cls || '');
+  el.textContent = text;
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+  $('pops').appendChild(el);
+  setTimeout(() => el.remove(), 1450);
+}
+function popMoney(pay){
+  const now = Date.now();
+  if (now - lastPop < 260) return;
+  lastPop = now;
+  const p = svgToScreen(268, 125);
+  popAt(p.x + (Math.random() - .5) * 24, p.y, '+$' + fmt(pay), 'money');
+}
+function svgToScreen(sx, sy){
+  const r = $('room').getBoundingClientRect(), g = $('stage').getBoundingClientRect(), k = g.width / 390 || 1;
+  return { x: g.left - r.left + sx * k, y: g.top - r.top + (sy - 10) * k };
+}
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+}
+
+/* ---------- modals ---------- */
+function queueModal(fn){ modalQueue.push(fn); if ($('modal').hidden) nextModal(); }
+function nextModal(){
+  const fn = modalQueue.shift();
+  if (!fn){ $('modal').hidden = true; return; }
+  $('modalcard').innerHTML = fn();
+  $('modal').hidden = false;
+  const b = $('modalcard').querySelector('button'); if (b) b.focus();
+}
+function closeModal(){ $('modal').hidden = true; nextModal(); }
+function offlineModal(secs, st){
+  return `<span class="label">Welcome back</span>
+    <h2>Your fixers kept working</h2>
+    <p>You were gone ${fmtDur(secs)}${secs > OFFLINE_CAP ? ' (offline earnings stop after 8h)' : ''}.</p>
+    <div class="kv"><span>Jobs completed</span><span>${fmt(st.jobs)}</span><span>Credits earned</span><span>$${fmt(st.credits)}</span></div>
+    <div class="modal-actions"><button class="btn cyan" data-action="close">Collect</button></div>`;
+}
+function resetModal(){
+  return `<span class="label" style="color:var(--red-ink)">Playtest</span>
+    <h2>Wipe this save?</h2>
+    <p>Everything goes, including the room and the playtest counters.</p>
+    <div class="modal-actions"><button class="btn" data-action="close">Keep playing</button><button class="btn red" data-action="restart">Wipe save</button></div>`;
+}
+
+/* ---------- room items ---------- */
+function itemSvg(key){
+  switch (key){
+    case 'lamp': return `<ellipse cx="0" cy="0" rx="6" ry="3" fill="#2A2F40"></ellipse><path d="M-4,-1 L4,-1 L3,-17 L-3,-17 Z" fill="#1E2230"></path><path d="M-2.6,-3 L2.6,-3 L2,-15 L-2,-15 Z" fill="#FF6A3D" opacity=".9"></path><circle cx="0" cy="-9" r="10" fill="#FF6A3D" opacity=".16"></circle><circle cx=".5" cy="-7" r="1.6" fill="#FFD2A8"></circle><circle cx="-.6" cy="-12" r="1.1" fill="#FFD2A8"></circle>`;
+    case 'plant': return `<path d="M-5,0 L5,0 L4,-9 L-4,-9 Z" fill="#8A4A3A"></path><ellipse cx="-4" cy="-13" rx="4" ry="6" fill="#3E8A5A" transform="rotate(-30 -4 -13)"></ellipse><ellipse cx="4" cy="-13" rx="4" ry="6" fill="#48A066" transform="rotate(30 4 -13)"></ellipse><ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#5CB877"></ellipse>`;
+    case 'phones': return `<path d="M-7,-2 A7,7 0 0 1 7,-2" stroke="#C9D2DC" stroke-width="2" fill="none"></path><rect x="-9" y="-3" width="4" height="6" rx="1.5" fill="#2E3446"></rect><rect x="5" y="-3" width="4" height="6" rx="1.5" fill="#2E3446"></rect><path d="M-7,3 L7,3" stroke="#7FE3E0" stroke-width="1" opacity=".6"></path>`;
+    case 'cat': return `<ellipse cx="-1" cy="-3" rx="8" ry="4.2" fill="#C9A66B"></ellipse><circle cx="7" cy="-6" r="3.6" fill="#C9A66B"></circle><polygon points="4.5,-8.5 5.5,-12 7.5,-9" fill="#C9A66B"></polygon><polygon points="8.5,-9 10,-12 10.5,-8.5" fill="#C9A66B"></polygon><path d="M-9,-3 Q-14,-8 -11,-12" stroke="#C9A66B" stroke-width="2" fill="none" stroke-linecap="round"></path><circle cx="8" cy="-6.5" r=".7" fill="#1A1D27"></circle>`;
+    case 'gf': return `<ellipse cx="0" cy="1" rx="9" ry="3" fill="#0E1118" opacity=".5"></ellipse><polygon points="-6,0 7,0 6,-13 -5,-13" fill="#6B3A6E"></polygon><polygon points="-7,0 -2,-1 -1,-5 -8,-4" fill="#3A4157"></polygon><polygon points="2,-1 8,0 9,-4 3,-5" fill="#3A4157"></polygon><circle cx="0" cy="-18" r="4.5" fill="#E8C3A5"></circle><path d="M-5,-18 Q-5,-25 0,-24 Q5,-25 5,-18 L5,-14 L3,-14 L3,-19 L-3,-19 L-3,-14 L-5,-14 Z" fill="#2B1B1E"></path><rect x="-3" y="-9" width="6" height="3.5" rx=".8" fill="#0E1420" stroke="#7FE3E0" stroke-width=".6"></rect>`;
+    case 'gpu': return `<polygon points="-12,-6 0,0 12,-6 0,-12" fill="#2A2F40"></polygon><polygon points="-12,-6 0,0 0,8 -12,2" fill="#171B27"></polygon><polygon points="0,0 12,-6 12,2 0,8" fill="#1E2330"></polygon><path d="M-9,-3 L-5,-1 M-9,0 L-5,2" stroke="#7FE3E0" stroke-width="1.6"></path><path d="M3,2 L7,0" stroke="#FF6A5F" stroke-width="1.6"></path>`;
+    case 'fiber': return `<polygon points="-7,-8 7,-1 7,9 -7,2" fill="#232838"></polygon><path d="M-5,-3 L1,0 M-5,0 L1,3" stroke="#2A3142" stroke-width="1.2"></path><circle cx="4" cy="4" r="1.5" fill="#9BF0B0"></circle><path d="M7,8 Q10,14 8,20" stroke="#3A4157" stroke-width="1.5" fill="none"></path>`;
+    case 'server': return `<polygon points="-10,-24 0,-19 10,-24 0,-29" fill="#2A2F40"></polygon><polygon points="-10,-24 0,-19 0,6 -10,1" fill="#171B27"></polygon><polygon points="0,-19 10,-24 10,1 0,6" fill="#1E2330"></polygon><path d="M-8,-17 L-4,-15 M-8,-11 L-4,-9 M-8,-5 L-4,-3" stroke="#7FE3E0" stroke-width="1.8"></path><path d="M2,-13 L6,-15 M2,-7 L6,-9" stroke="#FF6A5F" stroke-width="1.4"></path>`;
+    case 'cooler': return `<polygon points="-11,-10 0,-4 11,-10 0,-16" fill="#2E3446"></polygon><polygon points="-11,-10 0,-4 0,8 -11,2" fill="#1B1F2B"></polygon><polygon points="0,-4 11,-10 11,2 0,8" fill="#232838"></polygon><ellipse cx="5.5" cy="-1" rx="3.5" ry="4" fill="none" stroke="#8FD3FF" stroke-width="1.2" transform="skewY(-28)"></ellipse><circle cx="5.5" cy="-1" r="1" fill="#8FD3FF"></circle>`;
+    case 'quantum': return `<circle cx="0" cy="-8" r="13" fill="#B88BFF" opacity=".14"></circle><polygon points="-8,-8 0,-4 8,-8 0,-12" fill="#3E2E66"></polygon><polygon points="-8,-8 0,-4 0,4 -8,0" fill="#2A1F47"></polygon><polygon points="0,-4 8,-8 8,0 0,4" fill="#33265A"></polygon><path d="M-4,-7 L4,-3 M4,-7 L-4,-3" stroke="#D9C2FF" stroke-width="1" opacity=".9"></path>`;
+  }
+  return '';
+}
+function renderSlots(){
+  const now = Date.now();
+  if (!setSig('slots', SLOTS.map(s => (S.slots[s.id] || '-') + (S.cool[s.id] > now ? 'c' : '')).join('|'))) return;
+  $('slots').innerHTML = SLOTS.map(s => {
+    const key = S.slots[s.id], color = s.type === 'tech' ? '#7FE3E0' : '#F3C66B';
+    if (!key){
+      const y0 = s.where === 'wall' ? -12 : -16;
+      return `<g class="slot-empty" data-slot="${s.id}" transform="translate(${s.x},${s.y})"><title>Empty ${s.type} slot</title>
+        <rect x="-18" y="-24" width="36" height="36" fill="transparent"></rect>
+        <rect class="ring" x="-10" y="${y0}" width="20" height="20" fill="rgba(7,8,12,.55)" stroke="${color}" stroke-width="2" stroke-dasharray="4 4" shape-rendering="crispEdges"></rect>
+        <rect x="-1" y="${y0 + 5}" width="2" height="10" fill="${color}" shape-rendering="crispEdges"></rect>
+        <rect x="-5" y="${y0 + 9}" width="10" height="2" fill="${color}" shape-rendering="crispEdges"></rect></g>`;
+    }
+    const it = ITEMS[key];
+    return `<g class="slot-item" data-slot="${s.id}" transform="translate(${s.x},${s.y})"><title>${esc(it.name)}</title>
+      <rect x="-18" y="-32" width="36" height="44" fill="transparent"></rect></g>`;
+  }).join('');
+  $('itemart').innerHTML = SLOTS.filter(s => S.slots[s.id]).map(s =>
+    `<g transform="translate(${s.x},${s.y})"${S.cool[s.id] > now ? ' opacity=".5"' : ''}>${itemSvg(S.slots[s.id])}</g>`).join('');
+  rasterize();
+}
+
+/* ---------- pixel renderer: the room SVG is drawn into a small canvas and scaled up with hard pixels ---------- */
+let rasterW = 0, rasterH = 0, rasterSeq = 0, tapFlickUntil = 0;
+function layoutStage(){
+  const r = $('room').getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const sc = Math.min(r.width / 390, r.height / 320);
+  const P = Math.max(2, Math.round(sc * 2.6));
+  const cw = Math.max(40, Math.floor(390 * sc / P)), ch = Math.max(32, Math.floor(320 * sc / P));
+  const W = cw * P, H = ch * P, st = $('stage').style;
+  st.width = W + 'px'; st.height = H + 'px';
+  st.left = Math.round((r.width - W) / 2) + 'px'; st.top = Math.round((r.height - H) / 2) + 'px';
+  if (cw !== rasterW || ch !== rasterH){ rasterW = cw; rasterH = ch; rasterize(); }
+}
+function rasterize(){
+  if (!rasterW) return;
+  const seq = ++rasterSeq, src = $('roomsvg');
+  ['px0', 'px1'].forEach((cid, v) => {
+    const svg = src.cloneNode(true);
+    svg.querySelector('#slots').remove();
+    svg.querySelector('#art').removeAttribute('visibility');
+    svg.querySelector('#itemart').removeAttribute('visibility');
+    svg.removeAttribute('id'); svg.removeAttribute('aria-label');
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('width', rasterW); svg.setAttribute('height', rasterH);
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    svg.querySelectorAll('.code').forEach(c => c.setAttribute('opacity', v ? '.3' : '.95'));
+    const img = new Image();
+    img.onload = () => {
+      if (seq !== rasterSeq) return;
+      const c = $(cid); c.width = rasterW; c.height = rasterH;
+      const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+      x.clearRect(0, 0, rasterW, rasterH); x.drawImage(img, 0, 0, rasterW, rasterH);
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
+  });
+}
+
+/* ---------- sheets ---------- */
+function openSlotSheet(id){ openSlot = id; $('settingsheet').hidden = true; $('slotsheet').hidden = false; renderSlotSheet(true); }
+function closeSheets(){ openSlot = null; $('slotsheet').hidden = true; $('settingsheet').hidden = true; }
+function renderSlotSheet(force){
+  if (!openSlot) return;
+  const s = SLOTS.find(x => x.id === openSlot), key = S.slots[s.id];
+  if (!force && !setSig('slotsheet', [openSlot, key, Math.floor(S.credits)].join('|'))) return;
+  $('slottitle').textContent = key ? ITEMS[key].name : (s.type === 'tech' ? 'Empty tech slot' : 'Empty decor slot');
+  if (key){
+    const it = ITEMS[key];
+    $('slotbody').innerHTML = `<p class="note">${esc(it.eff)}. Items stay in your room for good.</p>`;
+    return;
+  }
+  const ownedKeys = new Set(Object.values(S.slots));
+  $('slotbody').innerHTML = `<p class="note">${s.type === 'tech' ? 'Tech boosts every job and adds a little comfort. Three slots, and items can\'t be removed, so choose.' : 'Decor makes the room comfortable. Every comfort point adds 1% to all earnings. Items can\'t be removed, so choose.'}</p>` +
+    Object.entries(ITEMS).filter(([k, it]) => it.type === s.type).map(([k, it]) => {
+      const owned = ownedKeys.has(k);
+      return `<div class="item"><div class="item-main"><span class="item-name">${esc(it.name)}</span><span class="item-eff">${esc(it.eff)}</span></div>
+        ${owned ? `<button class="btn small" disabled>PLACED</button>` : `<button class="btn small cyan" data-action="buy:${k}" data-cost="${it.cost}">$${fmt(it.cost)}</button>`}</div>`;
+    }).join('');
+}
+function renderSettings(){
+  const m = S.m, daysSince = Math.floor((Date.now() - m.first) / 86400000) + 1;
+  $('settingsbody').innerHTML = `<div class="kv"><span>Days since first play</span><span>${daysSince}</span><span>Days with a session</span><span>${m.days.length}</span><span>Sessions</span><span>${m.sessions}</span><span>Jobs completed</span><span>${fmt(S.totalJobs)}</span><span>Hacks</span><span>${fmt(m.taps)}</span><span>Bars completed</span><span>${fmt(m.bars || 0)}</span><span>Items placed</span><span>${placed().length}/${SLOTS.length}</span><span>Comfort</span><span>${comfort()}</span></div>
+    <p class="note">Counters live on this device only. Ask testers to screenshot this panel on day 1, day 3 and day 7.</p>
+    <div class="item"><div class="item-main"><span class="item-name">Wipe save</span><span class="item-eff">Start a fresh test on this device</span></div><button class="btn small red" data-action="reset">WIPE</button></div>`;
+}
+
+/* ---------- tiles ---------- */
+function setSig(key, val){ if (sigs[key] === val) return false; sigs[key] = val; return true; }
+function bestId(){
+  let best = null, bv = -1;
+  for (const j of JOBS) if (unlocked(j) && js(j.id).lv > 0){ const v = payFor(j) / j.time; if (v > bv){ bv = v; best = j.id; } }
+  return best;
+}
+const RC = 120;   /* perimeter of the 30×30 progress frame */
+const SHORT = { wifi:'WIFI', ceo:'MAIL', dms:'DMS', bank:'BANK', cams:'CAMS', sat:'SAT' };
+function ringSvg(id, cls, label, size, prog = true){
+  return `<svg class="ring ${cls}" width="${size}" height="${size}" viewBox="0 0 36 36" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="3" width="30" height="30" class="rt"></rect>${prog ? `<rect x="3" y="3" width="30" height="30" class="rp" data-ring="${id}" stroke-dasharray="${RC}" stroke-dashoffset="${RC}"></rect>` : ''}<text x="18" y="21" text-anchor="middle">${label}</text></svg>`;
+}
+function setRing(id, f){
+  const off = (RC * (1 - Math.floor(Math.max(0, Math.min(1, f)) * 24) / 24)).toFixed(1);
+  document.querySelectorAll(`[data-ring="${id}"]`).forEach(c => c.setAttribute('stroke-dashoffset', off));
+  const q = (Math.floor(Math.max(0, Math.min(1, f)) * 48) / 48).toFixed(3);
+  document.querySelectorAll(`[data-row="${id}"]`).forEach(r => r.style.setProperty('--p', q));
+}
+function renderRings(){
+  const owned = JOBS.filter(j => unlocked(j) && js(j.id).lv > 0), nl = nextLocked();
+  const sig = [owned.map(j => j.id + (js(j.id).fixer ? 'f' : '') + '').join(','), nl ? nl.id : '-'].join('|');
+  if (!setSig('rings', sig)) return;
+  let html = owned.map(j => ringSvg(j.id, js(j.id).fixer ? 'auto' : '', SHORT[j.id], 36)).join('');
+  if (nl) html += ringSvg('rep', 'lock', '???', 36);
+  $('rings').innerHTML = html;
+}
+/* level-up button label: what pressing it does */
+function upLabel(j, n){
+  if (js(j.id).lv === 0) return n > 1 ? `UNLOCK +${n} LV` : 'UNLOCK JOB';
+  return n > 1 ? `LEVEL UP +${n}` : 'LEVEL UP';
+}
+function renderTiles(){
+  renderRings();
+  const open = JOBS.filter(unlocked), nl = nextLocked();
+  const sig = [open.map(j => js(j.id).lv + (js(j.id).fixer ? 'f' : '')).join(','), runningIds().join(','), bestId(), S.totalJobs === 0, nl ? (S.rep / nl.unlock >= REVEAL_AT) : '-', buyIdx, comfort()].join('|');
+  if (!setSig('tiles', sig)) return;
+  const best = bestId(), rt = speedMult();
+  let html = open.map(j => {
+    const st = js(j.id), run = !!S.running[j.id], isBest = j.id === best && open.length > 1, first = st.lv === 0;
+    const canRun = !first && !run && !st.fixer;
+    const label = first ? 'NEW' : st.fixer ? 'AUTO' : run ? SHORT[j.id] : 'RUN';
+    const n = buyCount(j);
+    const pulse = S.totalJobs === 0 && j.id === 'wifi' ? ' pulse' : '';
+    const ringCls = [st.fixer ? 'auto' : '', canRun ? 'runnable' : ''].join(' ');
+    return `<div class="row ${isBest ? 'best' : ''}" data-row="${j.id}">
+      <button class="ringbtn" ${canRun ? `data-action="run:${j.id}" aria-label="Run ${esc(j.name)}"` : `disabled aria-label="${esc(j.name)}"`}>${ringSvg(j.id, ringCls, label, 46, false)}</button>
+      <div class="row-main">
+        <div class="row-top"><span class="n">${esc(j.name)}</span><span class="lv">L${st.lv}</span></div>
+        <div class="row-meta">${first ? 'Buy level 1 to start' : `<span class="p" data-pay="${j.id}"></span> · <span data-left="${j.id}">${fmtTime(j.time / rt)}</span><span data-ms="${j.id}"></span>`}</div>
+        ${st.fixer ? '' : `<button class="fx" data-action="fixer:${j.id}" data-cost="${j.fixer}">Hire fixer · $${fmt(j.fixer)}</button>`}
+      </div>
+      <button class="up${pulse}" data-action="up:${j.id}" data-cost="${costN(j, n)}" data-n="${n}" aria-label="Level up ${esc(j.name)}"><span class="un">${upLabel(j, n)}</span><span class="uc">$<span data-upcost="${j.id}">${fmt(costN(j, n))}</span></span></button>
+    </div>`;
+  }).join('');
+  if (nl){
+    const reveal = S.rep / nl.unlock >= REVEAL_AT;
+    html += `<div class="row locked" data-row="rep">${ringSvg('rep', 'lock', '???', 46, false)}<div class="row-main"><div class="row-top"><span class="n">${reveal ? esc(nl.name) : '???'}</span></div><div class="row-meta"><span data-replock></span> · ${reveal ? 'Almost there' : 'Earn rep to reveal'}</div></div><span></span></div>`;
+  }
+  $('tiles').innerHTML = html;
+}
+
+function update(){
+  const now = Date.now();
+  earnLog = earnLog.filter(e => now - e[0] < 15000);
+  const window_s = Math.min(15, Math.max(3, (now - (earnLog[0] ? earnLog[0][0] : now)) / 1000));
+  const cps = earnLog.reduce((a, e) => a + e[1], 0) / window_s;
+  $('credits').textContent = '$' + fmt(S.credits);
+  $('cps').textContent = '+$' + fmt(cps) + '/s';
+
+  const nl = nextLocked();
+  $('repval').textContent = fmt(S.rep);
+  if (nl){
+    const pct = Math.min(100, S.rep / nl.unlock * 100);
+    $('repbar').style.width = pct + '%';
+    $('repnext').textContent = (pct / 100 >= REVEAL_AT ? nl.name : '???');
+    const rl = document.querySelector('[data-replock]'); if (rl) rl.textContent = fmt(S.rep) + ' / ' + fmt(nl.unlock) + ' rep';
+    setRing('rep', pct / 100);
+  } else { $('repbar').style.width = '100%'; $('repnext').textContent = 'All unlocked'; }
+
+  tickEvents(now);
+  const ids = runningIds(), base = comfortBase(), bst = comfortBoost(), ab = activeBoosts();
+  const top = ab.sort((a, b) => b.amt - a.amt)[0];
+  $('comfortval').textContent = base + (bst ? ` +${bst} (${Math.ceil((top.until - now) / 1000)}s)` : '');
+  $('comfortbar').style.width = Math.min(100, base / comfortMax() * 100) + '%';
+  $('comfortboost').style.width = Math.min(100 - Math.min(100, base / comfortMax() * 100), bst / comfortMax() * 100) + '%';
+  $('comfortmult').textContent = '×' + comfortMult().toFixed(2) + ' pay';
+  renderEvent(now);
+  sparkBoosts(now);
+
+  const rt = speedMult();
+  for (const id of ids){
+    const r = S.running[id];
+    setRing(id, r.work / r.need);
+    const l = document.querySelector(`[data-left="${id}"]`); if (l) l.textContent = fmtTime((r.need - r.work) / rt);
+  }
+  for (const j of JOBS){
+    const pe = document.querySelector(`[data-pay="${j.id}"]`); if (pe) pe.textContent = '$' + fmt(payFor(j));
+    const uc = document.querySelector(`[data-upcost="${j.id}"]`);
+    if (uc){ const n = buyCount(j), b = uc.closest('button'); uc.textContent = fmt(costN(j, n)); b.dataset.cost = costN(j, n); b.dataset.n = n; b.querySelector('.un').textContent = upLabel(j, n); }
+    if (!S.running[j.id]) setRing(j.id, 0);
+    const ms = document.querySelector(`[data-ms="${j.id}"]`); if (ms){ const nm = nextMs(js(j.id).lv); ms.textContent = nm ? ` · 2× at L${nm}` : ''; }
+  }
+  document.querySelectorAll('[data-cost]').forEach(b => { b.disabled = S.credits < +b.dataset.cost; });
+  const upReady = JOBS.some(j => unlocked(j) && S.credits >= costN(j, 1));
+  const js_ = $('jobsum');
+  js_.textContent = !dockOpen && upReady ? 'UPGRADE READY' : ids.length ? `${ids.length} running · ${JOBS.filter(j => js(j.id).fixer).length} auto` : (S.totalJobs ? 'idle' : 'buy level 1 to start');
+  js_.classList.toggle('ready', !dockOpen && upReady);
+  $('hacksub').textContent = `+$${fmt(tapMoney())} · ${S.bar}/${BAR_STEPS} · bonus $${fmt(tapMoney() * BAR_BONUS)}`;
+  const blaze = now < blazeUntil;
+  $('hack').classList.toggle('full', !blaze && S.bar >= BAR_STEPS - 1);
+  $('hack').classList.toggle('blaze', blaze);
+  if (setSig('bar', S.bar + '|' + blaze)){
+    const segs = $('segs');
+    segs.classList.toggle('blaze', blaze);
+    segs.querySelectorAll('span').forEach((s, i) => s.classList.toggle('on', blaze || i < S.bar));
+  }
+  const dim = now < tapFlickUntil || (ids.length > 0 && Math.floor(now / 380) % 4 === 1);
+  $('px1').style.visibility = dim ? 'visible' : 'hidden';
+  renderSlots();
+  renderSlotSheet(false);
+}
+function tickEvents(now){
+  S.boosts = (S.boosts || []).filter(b => b.until > now);
+  if (S.event && (S.event.until < now || S.slots[S.event.slot] !== S.event.key)) S.event = null;
+  if (S.event || now < (S.nextEvent || 0)) return;
+  const cands = SLOTS.filter(s => S.slots[s.id] && ITEMS[S.slots[s.id]].ev && !S.boosts.some(b => b.slot === s.id));
+  if (!cands.length){ S.nextEvent = now + 10000; return; }
+  const s = cands[Math.floor(Math.random() * cands.length)];
+  S.event = { slot: s.id, key: S.slots[s.id], until: now + EV_WINDOW * 1000 };
+  S.nextEvent = now + (EV_MIN + Math.random() * (EV_MAX - EV_MIN)) * 1000;
+  try { if (navigator.vibrate) navigator.vibrate([15, 60, 15]); } catch (err) {}
+}
+function acceptEvent(){
+  const e = S.event; if (!e) return;
+  const ev = ITEMS[e.key].ev, now = Date.now();
+  S.boosts = (S.boosts || []).filter(b => b.until > now);
+  S.boosts.push({ slot: e.slot, key: e.key, amt: ev.boost, until: now + ev.dur * 1000, label: ev.label });
+  S.event = null;
+  const sl = SLOTS.find(x => x.id === e.slot), p = svgToScreen(sl.x, sl.y - 24);
+  popAt(p.x, p.y, `+${ev.boost} comfort`, 'comfort big');
+  toast(`${ev.label} · +${ev.boost} comfort for ${ev.dur}s`);
+  save(); render();
+}
+function renderEvent(now){
+  const el = $('evb'), e = S.event;
+  if (!e){ el.hidden = true; return; }
+  const ev = ITEMS[e.key].ev, sl = SLOTS.find(x => x.id === e.slot);
+  if (setSig('event', e.slot + e.key + e.until)){
+    el.innerHTML = `<span class="evq">${esc(ev.ask)}</span><span class="eva">${esc(ev.act)} · +${ev.boost} for ${ev.dur}s <i data-evleft></i></span>`;
+  }
+  const r = $('room').getBoundingClientRect(), p = svgToScreen(sl.x, sl.y - 26);
+  el.hidden = false;
+  el.style.left = Math.max(110, Math.min(r.width - 110, p.x)) + 'px';
+  el.style.top = Math.max(64, p.y) + 'px';
+  const l = el.querySelector('[data-evleft]'); if (l) l.textContent = Math.ceil((e.until - now) / 1000) + 's';
+}
+let lastSpark = 0;
+function sparkBoosts(now){
+  if (now - lastSpark < 1600) return;
+  lastSpark = now;
+  for (const b of activeBoosts()){
+    const sl = SLOTS.find(x => x.id === b.slot); if (!sl) continue;
+    const p = svgToScreen(sl.x + (Math.random() - .5) * 16, sl.y - 18);
+    popAt(p.x, p.y, '+', 'comfort');
+  }
+}
+function render(){ renderTiles(); update(); }
+
+/* ---------- input ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-action]');
+  if (!b || b.disabled) return;
+  const [a, arg] = b.dataset.action.split(':');
+  switch (a){
+    case 'hack': hack(); break;
+    case 'dock': dockOpen = !dockOpen; $('dock').classList.toggle('open', dockOpen); b.setAttribute('aria-expanded', String(dockOpen)); update(); return;
+    case 'event': acceptEvent(); return;
+    case 'buyx': buyIdx = (buyIdx + 1) % BUYX.length; $('buyx').textContent = 'BUY ×' + String(BUYX[buyIdx]).toUpperCase(); break;
+    case 'run': startJob(arg, true); break;
+    case 'up': { const j = J[arg], n = +b.dataset.n || 1, c = costN(j, n);
+      if (S.credits >= c){ const wasZero = js(arg).lv === 0; S.credits -= c; js(arg).lv += n;
+        if (wasZero) startJob(arg, true);
+        if (msMult(js(arg).lv) > msMult(js(arg).lv - n)) toast(`${j.name} now pays 2×`); } break; }
+    case 'fixer': { const j = J[arg]; if (S.credits >= j.fixer && !js(arg).fixer){ S.credits -= j.fixer; js(arg).fixer = true; startJob(arg, false); toast(`Fixer hired · ${j.name} repeats on its own`); } break; }
+    case 'buy': { const it = ITEMS[arg]; if (openSlot && it && S.credits >= it.cost && !Object.values(S.slots).includes(arg)){ S.credits -= it.cost; S.slots[openSlot] = arg; toast(`${it.name} placed · +${it.comfort} comfort`); if (it.ev) S.nextEvent = Math.min(S.nextEvent || Infinity, Date.now() + EV_FIRST * 1000); closeSheets(); } break; }
+    case 'closesheets': closeSheets(); return;
+    case 'settings': $('slotsheet').hidden = true; $('settingsheet').hidden = false; renderSettings(); return;
+    case 'reset': queueModal(resetModal); return;
+    case 'restart': S = fresh(); sigs = {}; modalQueue = []; $('modal').hidden = true; closeSheets(); countSession(); save(); render(); return;
+    case 'close': closeModal(); return;
+  }
+  save(); render();
+});
+/* the HACK button also fires on pointerdown so rapid taps feel instant; the click handler above is skipped for it */
+$('hack').addEventListener('pointerdown', e => { e.preventDefault(); hack(); render(); });
+$('hack').addEventListener('click', e => { e.stopPropagation(); }, true);
+
+$('room').addEventListener('click', e => {
+  const rect = $('room').getBoundingClientRect();
+  const x = e.clientX ? e.clientX - rect.left : rect.width / 2, y = e.clientY ? e.clientY - rect.top : rect.height / 2;
+  const slotEl = e.target.closest && e.target.closest('[data-slot]');
+  if (!slotEl){ if (openSlot || !$('settingsheet').hidden) closeSheets(); return; }
+  const id = slotEl.getAttribute('data-slot'), key = S.slots[id];
+  if (!key){ openSlotSheet(id); render(); return; }
+  if (S.event && S.event.slot === id){ acceptEvent(); return; }
+  const it = ITEMS[key], b = activeBoosts().find(q => q.slot === id);
+  popAt(x, y - 10, b ? `${b.label} · ${Math.ceil((b.until - Date.now()) / 1000)}s left` : `${it.name} · +${it.comfort} comfort`, 'comfort');
+});
+
+/* ---------- playtest counters ---------- */
+function countSession(){
+  const now = Date.now(), m = S.m;
+  if (now - (m.lastSession || 0) > 30 * 60000) m.sessions++;
+  m.lastSession = now;
+  const day = new Date(now).toISOString().slice(0, 10);
+  if (!m.days.includes(day)) m.days.push(day);
+}
+
+/* ---------- save / load ---------- */
+function save(){ S.last = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (err) {} }
+function load(data){
+  let raw = data && data.state;
+  if (!raw){ try { const t = localStorage.getItem(SAVE_KEY); if (t) raw = JSON.parse(t); } catch (err) {} }
+  S = Object.assign(fresh(), raw || {});
+  S.m = Object.assign(fresh().m, S.m || {});
+  delete S.focus;
+  S.boosts = S.boosts || []; if (!S.nextEvent) S.nextEvent = Date.now() + EV_FIRST * 1000;
+  for (const id of Object.keys(S.running || {})) if (!J[id]) delete S.running[id];
+  for (const id of Object.keys(S.slots || {})) if (!ITEMS[S.slots[id]]) delete S.slots[id];
+  return !!raw;
+}
+function boot(data){
+  layoutStage();
+  try { new ResizeObserver(layoutStage).observe($('room')); } catch (err) { window.addEventListener('resize', layoutStage); }
+  const had = load(data || {});
+  countSession();
+  render();
+  if (had){
+    const away = (Date.now() - S.last) / 1000;
+    if (away > 60){
+      const st = simulateOffline(away);
+      S.last = Date.now();
+      if (st.jobs) queueModal(() => offlineModal(away, st));
+      render();
+    }
+  }
+  S.last = Date.now();
+  setInterval(() => {
+    const now = Date.now(), dt = (now - S.last) / 1000;
+    S.last = now;
+    if (dt > 60){
+      countSession();
+      const st = simulateOffline(dt);
+      if (st.jobs) queueModal(() => offlineModal(dt, st));
+    } else tick(Math.max(0, dt), false);
+    render();
+  }, 100);
+  setInterval(save, 3000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) countSession(); save(); });
+  window.addEventListener('pagehide', save);
+}
+
+try { window.claude?.hot?.snapshot?.(() => ({ state: S })); } catch (err) {}
+if (window.claude?.hot?.ready) window.claude.hot.ready(boot);
+else boot(window.claude?.hot?.data ?? {});
+})();
+</script>
+</body>
+</html>
