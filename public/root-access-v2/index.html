@@ -242,6 +242,8 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 .row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p, 0) * 100%); background: rgba(127,227,224,.16); box-shadow: inset -3px 0 0 rgba(127,227,224,.55); pointer-events: none; }
 .row.locked::before { background: rgba(214,51,43,.16); box-shadow: inset -3px 0 0 rgba(214,51,43,.6); }
 .row > * { position: relative; }
+.row.can-run { cursor: pointer; border-color: var(--cyan-line); }
+.row.can-run:active { transform: translateY(2px); }
 .row-top { font-family: var(--font-display); font-size: 15px; font-weight: 600; }
 .row-top .lv, .row-meta, .fx { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.25; }
 .fx { white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
@@ -385,7 +387,7 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
     <button class="dock-head" data-action="dock" aria-expanded="true"><span class="label">Jobs</span><span class="rings" id="rings"></span><span class="dock-sum" id="jobsum"></span>
       <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
     <div class="dock-body">
-      <div class="dock-tools"><span class="note" style="font-size:12px">Tap a ring to run a job</span><button class="buyx" data-action="buyx" id="buyx">BUY ×1</button></div>
+      <div class="dock-tools"><span class="note" style="font-size:12px">Tap a job to run it</span><button class="buyx" data-action="buyx" id="buyx">BUY ×1</button></div>
       <div class="rows" id="tiles"></div>
     </div>
   </section>
@@ -767,7 +769,7 @@ function renderTiles(){
     const n = buyCount(j);
     const pulse = S.totalJobs === 0 && j.id === 'wifi' ? ' pulse' : '';
     const ringCls = [st.fixer ? 'auto' : '', canRun ? 'runnable' : ''].join(' ');
-    return `<div class="row ${isBest ? 'best' : ''}" data-row="${j.id}">
+    return `<div class="row ${isBest ? 'best' : ''} ${canRun ? 'can-run' : ''}" data-row="${j.id}"${canRun ? ` data-run="${j.id}"` : ''}>
       <button class="ringbtn" ${canRun ? `data-action="run:${j.id}" aria-label="Run ${esc(j.name)}"` : `disabled aria-label="${esc(j.name)}"`}>${ringSvg(j.id, ringCls, label, 46, false)}</button>
       <div class="row-main">
         <div class="row-top"><span class="n">${esc(j.name)}</span><span class="lv">L${st.lv}</span></div>
@@ -893,6 +895,9 @@ function render(){ renderTiles(); update(); }
 
 /* ---------- input ---------- */
 document.addEventListener('click', e => {
+  /* tapping anywhere on a job row that's ready to run starts it; its own buttons keep their actions */
+  const runRow = e.target.closest('.row[data-run]');
+  if (runRow && !e.target.closest('button')){ startJob(runRow.dataset.run, true); save(); render(); return; }
   const b = e.target.closest('[data-action]');
   if (!b || b.disabled) return;
   const [a, arg] = b.dataset.action.split(':');
