@@ -408,8 +408,7 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 <script>
 (function(){
 /* Economy: AdVenture-Capitalist-style, tuned for a 7-day idle curve. Each job has levels up to MAX_LV; level n costs
-   base × r^n (r = 1.12–1.13), pays base × level, and doubles at 25/50/100. A fixer automates a job once it reaches
-   FIXER_LV, so idle income is earned by levelling, not bought outright. Items multiply everything. */
+   base × r^n (r = 1.12–1.13), pays base × level, and doubles at 25/50/100. Fixers automate a job. Items multiply everything. */
 const JOBS = [
   { id:'wifi', name:'Crack a Wi-Fi password', time:2,   pay:1,     cost:6,     r:1.12, rep:1,   unlock:0,      fixer:20000 },
   { id:'ceo',  name:"Steal a CEO's emails",   time:6,   pay:15,    cost:200,   r:1.13, rep:3,   unlock:25,     fixer:300000 },
@@ -420,7 +419,7 @@ const JOBS = [
 ];
 const J = Object.fromEntries(JOBS.map(j => [j.id, j]));
 const MS = [25, 50, 100];
-const MAX_LV = 100, FIXER_LV = 25;
+const MAX_LV = 100;
 const REVEAL_AT = 0.6;
 const BUYX = [1, 10, 100, 'max'];
 
@@ -481,7 +480,6 @@ function msMult(lv){ let m = 1; for (const t of MS) if (lv >= t) m *= 2; return 
 function nextMs(lv){ for (const t of MS) if (lv < t) return t; return null; }
 const levelsLeft = j => Math.max(0, MAX_LV - js(j.id).lv);
 const maxed = j => js(j.id).lv >= MAX_LV;
-const fixerReady = j => js(j.id).lv >= FIXER_LV;
 const payFor = j => j.pay * js(j.id).lv * msMult(js(j.id).lv) * payMult() * comfortMult();
 const unlocked = j => S.rep >= j.unlock || js(j.id).lv > 0;
 const nextLocked = () => JOBS.find(j => !unlocked(j)) || null;
@@ -779,7 +777,7 @@ function renderTiles(){
       <div class="row-main">
         <div class="row-top"><span class="n">${esc(j.name)}</span><span class="lv">L${st.lv}</span></div>
         <div class="row-meta">${first ? 'Buy level 1 to start' : `<span class="p" data-pay="${j.id}"></span> · <span data-left="${j.id}">${fmtTime(j.time / rt)}</span><span data-ms="${j.id}"></span>`}</div>
-        ${st.fixer ? '' : fixerReady(j) ? `<button class="fx" data-action="fixer:${j.id}" data-cost="${j.fixer}">Hire fixer · $${fmt(j.fixer)}</button>` : `<button class="fx" disabled title="Reach level ${FIXER_LV} to hire a fixer">Fixer at L${FIXER_LV} · $${fmt(j.fixer)}</button>`}
+        ${st.fixer ? '' : `<button class="fx" data-action="fixer:${j.id}" data-cost="${j.fixer}">Hire fixer · $${fmt(j.fixer)}</button>`}
       </div>
       ${maxed(j) ? `<button class="up" disabled aria-label="${esc(j.name)} is at max level"><span class="un">MAXED</span><span class="uc">L${MAX_LV}</span></button>` : `<button class="up${pulse}" data-action="up:${j.id}" data-cost="${costN(j, n)}" data-n="${n}" aria-label="Level up ${esc(j.name)}"><span class="un">${upLabel(j, n)}</span><span class="uc">$<span data-upcost="${j.id}">${fmt(costN(j, n))}</span></span></button>`}
     </div>`;
@@ -916,10 +914,10 @@ document.addEventListener('click', e => {
       const n = Math.min(+b.dataset.n || 1, levelsLeft(j)), c = costN(j, n);
       if (S.credits >= c){ const wasZero = js(arg).lv === 0; S.credits -= c; js(arg).lv += n;
         if (wasZero) startJob(arg, true);
-        const lv = js(arg).lv, crossedFixer = lv >= FIXER_LV && lv - n < FIXER_LV;
+        const lv = js(arg).lv;
         if (maxed(j)) toast(`${j.name} maxed out at L${MAX_LV}`);
-        else if (msMult(lv) > msMult(lv - n)) toast(`${j.name} now pays 2×${crossedFixer ? ' · fixer for hire' : ''}`); } break; }
-    case 'fixer': { const j = J[arg]; if (S.credits >= j.fixer && !js(arg).fixer && fixerReady(j)){ S.credits -= j.fixer; js(arg).fixer = true; startJob(arg, false); toast(`Fixer hired · ${j.name} repeats on its own`); } break; }
+        else if (msMult(lv) > msMult(lv - n)) toast(`${j.name} now pays 2×`); } break; }
+    case 'fixer': { const j = J[arg]; if (S.credits >= j.fixer && !js(arg).fixer){ S.credits -= j.fixer; js(arg).fixer = true; startJob(arg, false); toast(`Fixer hired · ${j.name} repeats on its own`); } break; }
     case 'buy': { const it = ITEMS[arg]; if (openSlot && it && S.credits >= it.cost && !Object.values(S.slots).includes(arg)){ S.credits -= it.cost; S.slots[openSlot] = arg; toast(`${it.name} placed · +${it.comfort} comfort`); if (it.ev) S.nextEvent = Math.min(S.nextEvent || Infinity, Date.now() + EV_FIRST * 1000); closeSheets(); } break; }
     case 'closesheets': closeSheets(); return;
     case 'settings': $('slotsheet').hidden = true; $('settingsheet').hidden = false; renderSettings(); return;
