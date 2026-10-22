@@ -412,33 +412,33 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
    and level up in place to MAX_ITEM: each level costs base × ITEM_R^level and adds a fifth of the item's base effect. */
 const JOBS = [
   { id:'wifi', name:'Crack a Wi-Fi password', time:6,   pay:3,      cost:6,     r:1.12, rep:3,   unlock:0,      fixer:1000, rig:'DeAuth-o-Matic 3000' },
-  { id:'ceo',  name:"Steal a CEO's emails",   time:18,  pay:45,     cost:200,   r:1.13, rep:9,   unlock:25,     fixer:300000, rig:'CEObuster 5000' },
-  { id:'dms',  name:"Leak a politician's DMs",time:36,  pay:360,    cost:3000,  r:1.13, rep:30,  unlock:600,    fixer:4e6, rig:'DMscraper XL' },
-  { id:'bank', name:'Drain a corrupt bank',   time:90,  pay:3000,   cost:40000, r:1.13, rep:90,  unlock:10000,   fixer:5e7, rig:'BankDrainer Turbo' },
-  { id:'cams', name:"Blind a city's cameras", time:180, pay:24000,  cost:5e5,   r:1.12, rep:300, unlock:100000,  fixer:6e8, rig:'BlindSpot 9000' },
-  { id:'sat',  name:'Hijack a satellite',     time:360, pay:180000, cost:6e6,   r:1.12, rep:900, unlock:600000, fixer:8e9, rig:'SatJacker Ultra' }
+  { id:'ceo',  name:"Steal a CEO's emails",   time:18,  pay:45,     cost:200,   r:1.13, rep:9,   unlock:25,     fixer:100000, rig:'CEObuster 5000' },
+  { id:'dms',  name:"Leak a politician's DMs",time:36,  pay:360,    cost:3000,  r:1.13, rep:30,  unlock:400,    fixer:1.3e6, rig:'DMscraper XL' },
+  { id:'bank', name:'Drain a corrupt bank',   time:90,  pay:3000,   cost:40000, r:1.13, rep:90,  unlock:6000,   fixer:1.6e7, rig:'BankDrainer Turbo' },
+  { id:'cams', name:"Blind a city's cameras", time:180, pay:24000,  cost:5e5,   r:1.12, rep:300, unlock:60000,  fixer:2e8, rig:'BlindSpot 9000' },
+  { id:'sat',  name:'Hijack a satellite',     time:360, pay:180000, cost:6e6,   r:1.12, rep:900, unlock:350000, fixer:2.7e9, rig:'SatJacker Ultra' }
 ];
 const J = Object.fromEntries(JOBS.map(j => [j.id, j]));
 const MS = [25];
-const MAX_LV = 25, MAX_ITEM = 25, ITEM_R = 1.6;
+const MAX_LV = 25, MAX_ITEM = 25, ITEM_R = 1.5;
 const REVEAL_AT = 0.6;
 const BUYX = [1, 10, 100, 'max'];
 
 const ITEMS = {
-  gpu:     { type:'tech',  size:'large', name:'GPU tower',     cost:15000,  comfort:1,  pay:1.25 },
-  fiber:   { type:'tech',  size:'small', name:'Fiber modem',   cost:1.5e6,  comfort:2,  speed:1.2 },
-  server:  { type:'tech',  size:'large', name:'Server tower',  cost:4e7,    comfort:3,  pay:1.5 },
-  cooler:  { type:'tech',  size:'large', name:'Cooling unit',  cost:6e8,    comfort:4,  speed:1.3 },
-  quantum: { type:'tech',  size:'small', name:'Quantum card',  cost:4e9,    comfort:5,  pay:2 },
-  rack:    { type:'tech',  size:'large', name:'Server rack',   cost:400,    r:125, rack:true, holds:3 },
-  lamp:    { type:'decor', name:'Lava lamp',     cost:3000,   comfort:5,  ev:{ ask:'The lava lamp is doing a perfect swirl', act:'Watch it', boost:10, dur:30, label:'Lava swirl' } },
-  plant:   { type:'decor', name:'Plant',         cost:60000,  comfort:10, ev:{ ask:'The plant looks thirsty', act:'Water it', boost:15, dur:45, label:'Fresh air' } },
-  phones:  { type:'decor', name:'Headphones',    cost:300000, comfort:15, ev:{ ask:'Your playlist just dropped a banger', act:'Turn it up', boost:20, dur:40, label:'In the zone' } },
-  cat:     { type:'decor', name:'Cat',           cost:8e6,    comfort:25, ev:{ ask:'The cat wants your lap', act:'Let it in', boost:30, dur:45, label:'Cat on lap' } },
-  gf:      { type:'decor', name:'Girlfriend',    cost:1.5e8,  comfort:40, ev:{ ask:'Your girlfriend offers a massage', act:'Accept', boost:60, dur:40, label:'Massage' } }
+  gpu:     { type:'tech',  size:'large', name:'GPU tower',     cost:10000,  comfort:1,  pay:1.25 },
+  fiber:   { type:'tech',  size:'small', name:'Fiber modem',   cost:1e6,    comfort:2,  speed:1.2 },
+  server:  { type:'tech',  size:'large', name:'Server tower',  cost:2.5e7,  comfort:3,  pay:1.5 },
+  cooler:  { type:'tech',  size:'large', name:'Cooling unit',  cost:4e8,    comfort:4,  speed:1.3 },
+  quantum: { type:'tech',  size:'small', name:'Quantum card',  cost:2.5e9,  comfort:5,  pay:2 },
+  rack:    { type:'tech',  size:'large', name:'Server rack',   cost:400,    r:50, rack:true, holds:3 },
+  lamp:    { type:'decor', name:'Lava lamp',     cost:2000,   comfort:5,  ev:{ ask:'The lava lamp is doing a perfect swirl', act:'Watch it', boost:10, dur:30, label:'Lava swirl' } },
+  plant:   { type:'decor', name:'Plant',         cost:40000,  comfort:10, ev:{ ask:'The plant looks thirsty', act:'Water it', boost:15, dur:45, label:'Fresh air' } },
+  phones:  { type:'decor', name:'Headphones',    cost:200000, comfort:15, ev:{ ask:'Your playlist just dropped a banger', act:'Turn it up', boost:20, dur:40, label:'In the zone' } },
+  cat:     { type:'decor', name:'Cat',           cost:5e6,    comfort:25, ev:{ ask:'The cat wants your lap', act:'Let it in', boost:30, dur:45, label:'Cat on lap' } },
+  gf:      { type:'decor', name:'Girlfriend',    cost:1e8,    comfort:40, ev:{ ask:'Your girlfriend offers a massage', act:'Accept', boost:60, dur:40, label:'Massage' } }
 };
 /* space: large hardware (towers, units, racks) needs a floor or wall slot; small gear (rigs, cards, modems) only fits on a rack shelf.
-   Each rack adds three shelf slots and the next rack costs 125× more. Rigs are the per-job automation, bought on the job row or here. */
+   Each rack adds three shelf slots and the next rack costs 50× more. Rigs are the per-job automation, bought on the job row or here. */
 for (const j of JOBS) ITEMS['rig:' + j.id] = { type:'tech', size:'small', rig:true, job:j.id, name:j.rig, cost:j.fixer };
 /* item levels: the pay/speed bonus and decor comfort grow linearly, +1/5 of the base per level; the next level costs base × ITEM_R^level.
    Tech comfort is a flat point or two: comfort is decor's job. */
@@ -834,9 +834,15 @@ function upLabel(j, n){
 function renderTiles(){
   renderRings();
   const open = JOBS.filter(unlocked), nl = nextLocked();
-  const sig = [open.map(j => js(j.id).lv + (js(j.id).fixer ? 'f' : '')).join(','), runningIds().join(','), bestId(), S.totalJobs === 0, nl ? (S.rep / nl.unlock >= REVEAL_AT) : '-', buyIdx, comfort()].join('|');
+  const shelf = freeSlot('tech', 'small'), floor = freeSlot('tech', 'large');
+  const sig = [open.map(j => js(j.id).lv + (js(j.id).fixer ? 'f' : '')).join(','), runningIds().join(','), bestId(), S.totalJobs === 0, nl ? (S.rep / nl.unlock >= REVEAL_AT) : '-', buyIdx, comfort(), shelf && shelf.id, floor && floor.id, rackCount()].join('|');
   if (!setSig('tiles', sig)) return;
   const best = bestId(), rt = speedMult();
+  /* the rig line: once affordable it opens the rack to add the rig; without a free shelf it points at the slot where a rack goes */
+  const rigLine = j => js(j.id).fixer || js(j.id).lv === 0 ? '' :
+    shelf ? `<button class="fx" data-action="openslot:${shelf.parent}" data-cost="${j.fixer}" title="Open the rack and add the ${esc(j.rig)}">${esc(j.rig)} · $${fmt(j.fixer)} · add on rack</button>` :
+    floor ? `<button class="fx" data-action="openslot:${floor.id}" title="Buy a server rack first; rigs sit on its shelves">${esc(j.rig)} · $${fmt(j.fixer)} · buy a rack ($${fmt(itemCost('rack'))}) to fit it</button>` :
+    `<button class="fx" disabled title="No free shelf and no room for another rack">${esc(j.rig)} · $${fmt(j.fixer)} · no space</button>`;
   let html = open.map(j => {
     const st = js(j.id), run = !!S.running[j.id], isBest = j.id === best && open.length > 1, first = st.lv === 0;
     const canRun = !first && !run && !st.fixer;
@@ -849,6 +855,7 @@ function renderTiles(){
       <div class="row-main">
         <div class="row-top"><span class="n">${esc(j.name)}</span><span class="lv">L${st.lv}</span></div>
         <div class="row-meta">${first ? 'Buy level 1 to start' : `<span class="p" data-pay="${j.id}"></span> · <span data-left="${j.id}">${fmtTime(j.time / rt)}</span><span data-ms="${j.id}"></span>`}</div>
+        ${rigLine(j)}
       </div>
       ${maxed(j) ? `<button class="up" disabled aria-label="${esc(j.name)} is at max level"><span class="un">MAXED</span><span class="uc">L${MAX_LV}</span></button>` : `<button class="up${pulse}" data-action="up:${j.id}" data-cost="${costN(j, n)}" data-n="${n}" aria-label="Level up ${esc(j.name)}"><span class="un">${upLabel(j, n)}</span><span class="uc">$<span data-upcost="${j.id}">${fmt(costN(j, n))}</span></span></button>`}
     </div>`;
@@ -999,7 +1006,7 @@ document.addEventListener('click', e => {
           if (sl.parent) openSlotSheet(sl.parent); else closeSheets(); } } break; }
     case 'upitem': { const it = ITEMS[S.slots[arg]], lv = slotLv(arg);
       if (it && lv < MAX_ITEM){ const c = itemUpCost(it, lv); if (S.credits >= c){ S.credits -= c; S.itemLv[arg] = lv + 1; toast(`${it.name} L${lv + 1} · ${effAt(it, lv + 1)}`); } } break; }
-    case 'shelf': openSlotSheet(arg); render(); return;
+    case 'shelf': case 'openslot': openSlotSheet(arg); render(); return;
     case 'closesheets': closeSheets(); return;
     case 'settings': $('slotsheet').hidden = true; $('settingsheet').hidden = false; renderSettings(); return;
     case 'reset': queueModal(resetModal); return;
