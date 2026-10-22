@@ -408,47 +408,82 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 <script>
 (function(){
 /* Economy: AdVenture-Capitalist-style, tuned for a 7-day idle curve. Each job has levels up to MAX_LV; level n costs
-   base × r^n (r = 1.12–1.13), pays base × level, and doubles at 25/50/100. Fixers automate a job. Items multiply everything. */
+   base × r^n (r = 1.12–1.13), pays base × level, and doubles at MAX_LV. Each job sells one piece of hardware (its rig, stored as `fixer`) that runs it on its own. Items multiply everything
+   and level up in place to MAX_ITEM: each level costs base × ITEM_R^level and adds a fifth of the item's base effect. */
 const JOBS = [
-  { id:'wifi', name:'Crack a Wi-Fi password', time:2,   pay:1,     cost:6,     r:1.12, rep:1,   unlock:0,      fixer:1000 },
-  { id:'ceo',  name:"Steal a CEO's emails",   time:6,   pay:15,    cost:200,   r:1.13, rep:3,   unlock:25,     fixer:300000 },
-  { id:'dms',  name:"Leak a politician's DMs",time:12,  pay:120,   cost:3000,  r:1.13, rep:10,  unlock:400,    fixer:4e6 },
-  { id:'bank', name:'Drain a corrupt bank',   time:30,  pay:1000,  cost:40000, r:1.13, rep:30,  unlock:4000,   fixer:5e7 },
-  { id:'cams', name:"Blind a city's cameras", time:60,  pay:8000,  cost:5e5,   r:1.12, rep:100, unlock:25000,  fixer:6e8 },
-  { id:'sat',  name:'Hijack a satellite',     time:120, pay:60000, cost:6e6,   r:1.12, rep:300, unlock:120000, fixer:8e9 }
+  { id:'wifi', name:'Crack a Wi-Fi password', time:6,   pay:3,      cost:6,     r:1.12, rep:3,   unlock:0,      fixer:1000, rig:'DeAuth-o-Matic 3000' },
+  { id:'ceo',  name:"Steal a CEO's emails",   time:18,  pay:45,     cost:200,   r:1.13, rep:9,   unlock:25,     fixer:300000, rig:'CEObuster 5000' },
+  { id:'dms',  name:"Leak a politician's DMs",time:36,  pay:360,    cost:3000,  r:1.13, rep:30,  unlock:600,    fixer:4e6, rig:'DMscraper XL' },
+  { id:'bank', name:'Drain a corrupt bank',   time:90,  pay:3000,   cost:40000, r:1.13, rep:90,  unlock:10000,   fixer:5e7, rig:'BankDrainer Turbo' },
+  { id:'cams', name:"Blind a city's cameras", time:180, pay:24000,  cost:5e5,   r:1.12, rep:300, unlock:100000,  fixer:6e8, rig:'BlindSpot 9000' },
+  { id:'sat',  name:'Hijack a satellite',     time:360, pay:180000, cost:6e6,   r:1.12, rep:900, unlock:600000, fixer:8e9, rig:'SatJacker Ultra' }
 ];
 const J = Object.fromEntries(JOBS.map(j => [j.id, j]));
-const MS = [25, 50, 100];
-const MAX_LV = 100;
+const MS = [25];
+const MAX_LV = 25, MAX_ITEM = 25, ITEM_R = 1.6;
 const REVEAL_AT = 0.6;
 const BUYX = [1, 10, 100, 'max'];
 
 const ITEMS = {
-  gpu:     { type:'tech',  name:'GPU rack',      cost:15000,   comfort:4,  pay:1.25,  eff:'All jobs pay +25% · +4 comfort' },
-  fiber:   { type:'tech',  name:'Fiber line',    cost:1.5e6,  comfort:6,  speed:1.2, eff:'All jobs run 20% faster · +6 comfort' },
-  server:  { type:'tech',  name:'Server tower',  cost:4e7, comfort:10, pay:1.5,   eff:'All jobs pay +50% · +10 comfort' },
-  cooler:  { type:'tech',  name:'Cooling unit',  cost:6e8,  comfort:15, speed:1.3, eff:'All jobs run 30% faster · +15 comfort' },
-  quantum: { type:'tech',  name:'Quantum card',  cost:4e9,    comfort:25, pay:2,     eff:'All jobs pay +100% · +25 comfort' },
-  lamp:    { type:'decor', name:'Lava lamp',     cost:3000,    comfort:5,  ev:{ ask:'The lava lamp is doing a perfect swirl', act:'Watch it', boost:10, dur:30, label:'Lava swirl' } },
-  plant:   { type:'decor', name:'Plant',         cost:60000,   comfort:10, ev:{ ask:'The plant looks thirsty', act:'Water it', boost:15, dur:45, label:'Fresh air' } },
-  phones:  { type:'decor', name:'Headphones',    cost:300000,  comfort:15, ev:{ ask:'Your playlist just dropped a banger', act:'Turn it up', boost:20, dur:40, label:'In the zone' } },
-  cat:     { type:'decor', name:'Cat',           cost:8e6,  comfort:25, ev:{ ask:'The cat wants your lap', act:'Let it in', boost:30, dur:45, label:'Cat on lap' } },
-  gf:      { type:'decor', name:'Girlfriend',    cost:1.5e8, comfort:40, ev:{ ask:'Your girlfriend offers a massage', act:'Accept', boost:60, dur:40, label:'Massage' } }
+  gpu:     { type:'tech',  size:'large', name:'GPU tower',     cost:15000,  comfort:1,  pay:1.25 },
+  fiber:   { type:'tech',  size:'small', name:'Fiber modem',   cost:1.5e6,  comfort:2,  speed:1.2 },
+  server:  { type:'tech',  size:'large', name:'Server tower',  cost:4e7,    comfort:3,  pay:1.5 },
+  cooler:  { type:'tech',  size:'large', name:'Cooling unit',  cost:6e8,    comfort:4,  speed:1.3 },
+  quantum: { type:'tech',  size:'small', name:'Quantum card',  cost:4e9,    comfort:5,  pay:2 },
+  rack:    { type:'tech',  size:'large', name:'Server rack',   cost:400,    r:125, rack:true, holds:3 },
+  lamp:    { type:'decor', name:'Lava lamp',     cost:3000,   comfort:5,  ev:{ ask:'The lava lamp is doing a perfect swirl', act:'Watch it', boost:10, dur:30, label:'Lava swirl' } },
+  plant:   { type:'decor', name:'Plant',         cost:60000,  comfort:10, ev:{ ask:'The plant looks thirsty', act:'Water it', boost:15, dur:45, label:'Fresh air' } },
+  phones:  { type:'decor', name:'Headphones',    cost:300000, comfort:15, ev:{ ask:'Your playlist just dropped a banger', act:'Turn it up', boost:20, dur:40, label:'In the zone' } },
+  cat:     { type:'decor', name:'Cat',           cost:8e6,    comfort:25, ev:{ ask:'The cat wants your lap', act:'Let it in', boost:30, dur:45, label:'Cat on lap' } },
+  gf:      { type:'decor', name:'Girlfriend',    cost:1.5e8,  comfort:40, ev:{ ask:'Your girlfriend offers a massage', act:'Accept', boost:60, dur:40, label:'Massage' } }
 };
+/* space: large hardware (towers, units, racks) needs a floor or wall slot; small gear (rigs, cards, modems) only fits on a rack shelf.
+   Each rack adds three shelf slots and the next rack costs 125× more. Rigs are the per-job automation, bought on the job row or here. */
+for (const j of JOBS) ITEMS['rig:' + j.id] = { type:'tech', size:'small', rig:true, job:j.id, name:j.rig, cost:j.fixer };
+/* item levels: the pay/speed bonus and decor comfort grow linearly, +1/5 of the base per level; the next level costs base × ITEM_R^level.
+   Tech comfort is a flat point or two: comfort is decor's job. */
+const grow = lv => 1 + (lv - 1) / 5;
+const itemPay = (it, lv) => 1 + ((it.pay || 1) - 1) * grow(lv);
+const itemSpeed = (it, lv) => 1 + ((it.speed || 1) - 1) * grow(lv);
+const itemComfort = (it, lv) => it.type === 'tech' ? (it.comfort || 0) : Math.round((it.comfort || 0) * grow(lv));
+const itemUpCost = (it, lv) => it.cost * Math.pow(ITEM_R, lv);
+function effAt(it, lv){
+  if (it.rig) return `Runs ${J[it.job].name} on its own`;
+  if (it.rack) return `Holds ${it.holds} small upgrades`;
+  const parts = [];
+  if (it.pay) parts.push(`All jobs pay +${Math.round((itemPay(it, lv) - 1) * 100)}%`);
+  if (it.speed) parts.push(`All jobs run ${Math.round((itemSpeed(it, lv) - 1) * 100)}% faster`);
+  parts.push(`+${itemComfort(it, lv)} comfort`);
+  if (it.ev) parts.push(`event: +${it.ev.boost} comfort for ${it.ev.dur}s`);
+  return parts.join(' · ');
+}
 /* decor events: every so often one placed decor item asks for you; accepting adds temporary comfort on top of the permanent amount */
-for (const it of Object.values(ITEMS)) it.eff = it.eff || `+${it.comfort} comfort · event: +${it.ev.boost} comfort for ${it.ev.dur}s`;
 const EV_WINDOW = 20, EV_FIRST = 15, EV_MIN = 60, EV_MAX = 120;
 const SLOTS = [
-  { id:'t1', type:'tech',  x:296, y:224, where:'floor' },
-  { id:'t2', type:'tech',  x:303, y:62,  where:'wall' },
-  { id:'t3', type:'tech',  x:262, y:244, where:'floor' },
+  { id:'t1', type:'tech',  size:'large', x:296, y:224, where:'floor' },
+  { id:'t2', type:'tech',  size:'large', x:303, y:62,  where:'wall' },
+  { id:'t3', type:'tech',  size:'large', x:262, y:244, where:'floor' },
   { id:'d1', type:'decor', x:148, y:160, where:'shelf' },
   { id:'d2', type:'decor', x:205, y:256, where:'floor' },
   { id:'d3', type:'decor', x:122, y:228, where:'bed' }
 ];
+/* a placed rack adds three shelf slots stacked above it */
+function slots(){
+  const out = [];
+  for (const s of SLOTS){
+    out.push(s);
+    if (S && S.slots[s.id] === 'rack') for (let i = 0; i < ITEMS.rack.holds; i++) out.push({ id:`${s.id}r${i}`, type:'tech', size:'small', x:s.x, y:s.y - 10 - 10 * i, where:'rack', parent:s.id });
+  }
+  return out;
+}
+const fits = (slot, it) => slot.type === it.type && (slot.type !== 'tech' || slot.size === it.size);
+const freeSlot = (type, size) => slots().find(s => s.type === type && (type !== 'tech' || s.size === size) && !S.slots[s.id]);
+const rackCount = () => Object.values(S.slots).filter(k => k === 'rack').length;
+const shelfIndex = sh => slots().filter(x => x.parent === sh.parent).findIndex(x => x.id === sh.id);
+const itemCost = k => k === 'rack' ? ITEMS.rack.cost * Math.pow(ITEMS.rack.r, rackCount()) : ITEMS[k].cost;
 const OFFLINE_CAP = 8 * 3600, SAVE_KEY = 'root-idle-v4';
 const TAP_BOOST = 0.25;
-const BAR_STEPS = 10, BAR_BONUS = 15, BAR_BOOST = 3;   /* full bar: 15 taps' worth of money, +3s on every job */
+const BAR_STEPS = 10, BAR_BONUS = 15, BAR_SPEED = 0.25, BAR_SPEED_DUR = 12;   /* full bar: 15 taps' worth of money, and every job runs +25% faster for 12s; bars stack linearly */
 
 const $ = id => document.getElementById(id);
 let S, sigs = {}, earnLog = [], modalQueue = [], lastPop = 0, toastTimer = 0, openSlot = null;
@@ -456,24 +491,28 @@ let buyIdx = 0, shakeT = 0, blazeUntil = 0, dockOpen = true;
 
 function fresh(){
   const now = Date.now();
-  return { credits:0, rep:0, jobs:{}, running:{}, slots:{}, cool:{}, bar:0, boosts:[], event:null, nextEvent: now + EV_FIRST * 1000, last: now, totalJobs:0,
+  return { credits:0, rep:0, jobs:{}, running:{}, slots:{}, itemLv:{}, cool:{}, bar:0, bars:[], boosts:[], event:null, nextEvent: now + EV_FIRST * 1000, last: now, totalJobs:0,
     m: { first: now, sessions: 0, days: [], taps: 0, lastSession: 0, bars: 0 } };
 }
 function js(id){ return S.jobs[id] || (S.jobs[id] = { lv:0, fixer:false }); }
 
 /* ---------- math ---------- */
 const placed = () => Object.values(S.slots).filter(Boolean).map(k => ITEMS[k]);
-const payMult = () => placed().reduce((a, it) => a * (it.pay || 1), 1);
-const speedMult = () => placed().reduce((a, it) => a * (it.speed || 1), 1);
+const slotLv = id => S.itemLv[id] || 1;
+const placedSlots = () => slots().filter(s => S.slots[s.id]).map(s => ({ id: s.id, it: ITEMS[S.slots[s.id]], lv: slotLv(s.id) }));
+const payMult = () => placedSlots().reduce((a, p) => a * itemPay(p.it, p.lv), 1);
+const barStack = () => (S.bars || []).filter(t => t > Date.now()).length;
+const barSpeed = () => 1 + BAR_SPEED * barStack();
+const speedMult = () => placedSlots().reduce((a, p) => a * itemSpeed(p.it, p.lv), 1) * barSpeed();
 /* comfort: the sum of what's in the room. It only ever goes up (items can't be removed) and every point adds 1% to all earnings. */
-const comfortBase = () => placed().reduce((a, it) => a + (it.comfort || 0), 0);
+const comfortBase = () => placedSlots().reduce((a, p) => a + itemComfort(p.it, p.lv), 0);
 const activeBoosts = () => (S.boosts || []).filter(b => b.until > Date.now());
 const comfortBoost = () => activeBoosts().reduce((a, b) => a + b.amt, 0);
 const comfort = () => comfortBase() + comfortBoost();
 const comfortMult = () => 1 + comfort() / 100;
 function comfortMax(){
-  const best = t => Object.values(ITEMS).filter(it => it.type === t).map(it => it.comfort).sort((a, b) => b - a)
-    .slice(0, SLOTS.filter(s => s.type === t).length).reduce((a, b) => a + b, 0);
+  const best = t => Object.values(ITEMS).filter(it => it.type === t).map(it => itemComfort(it, MAX_ITEM)).sort((a, b) => b - a)
+    .slice(0, slots().filter(s => s.type === t).length).reduce((a, b) => a + b, 0);
   return best('tech') + best('decor');
 }
 function msMult(lv){ let m = 1; for (const t of MS) if (lv >= t) m *= 2; return m; }
@@ -538,6 +577,7 @@ function tick(dt, offline, stats){
 }
 function simulateOffline(seconds){
   const stats = { jobs:0, credits:0 };
+  S.bars = [];   /* the tap speed bonus does not survive an absence */
   let left = Math.min(seconds, OFFLINE_CAP);
   while (left > 0){ const step = Math.min(1, left); tick(step, true, stats); left -= step; }
   return stats;
@@ -561,9 +601,9 @@ function hack(){
     const bonus = money * BAR_BONUS;
     S.credits += bonus;
     earnLog.push([now, bonus]);
-    for (const id of runningIds()) S.running[id].work += BAR_BOOST;
+    S.bars = (S.bars || []).filter(t => t > now); S.bars.push(now + BAR_SPEED_DUR * 1000);
     const rr = $('room').getBoundingClientRect();
-    setTimeout(() => popAt(rr.width / 2, rr.height * 0.42, 'BONUS +$' + fmt(bonus), 'bonus'), 40);
+    setTimeout(() => popAt(rr.width / 2, rr.height * 0.42, `BONUS +$${fmt(bonus)} · ×${barSpeed().toFixed(2)} SPEED`, 'bonus'), 40);
     const app = $('app');
     app.classList.remove('shake', 'combo'); void app.offsetWidth; app.classList.add('shake', 'combo');
     clearTimeout(shakeT); shakeT = setTimeout(() => app.classList.remove('shake', 'combo'), 380);
@@ -613,7 +653,7 @@ function nextModal(){
 function closeModal(){ $('modal').hidden = true; nextModal(); }
 function offlineModal(secs, st){
   return `<span class="label">Welcome back</span>
-    <h2>Your fixers kept working</h2>
+    <h2>Your rigs kept working</h2>
     <p>You were gone ${fmtDur(secs)}${secs > OFFLINE_CAP ? ' (offline earnings stop after 8h)' : ''}.</p>
     <div class="kv"><span>Jobs completed</span><span>${fmt(st.jobs)}</span><span>Credits earned</span><span>$${fmt(st.credits)}</span></div>
     <div class="modal-actions"><button class="btn cyan" data-action="close">Collect</button></div>`;
@@ -637,13 +677,18 @@ function itemSvg(key){
     case 'fiber': return `<polygon points="-7,-8 7,-1 7,9 -7,2" fill="#232838"></polygon><path d="M-5,-3 L1,0 M-5,0 L1,3" stroke="#2A3142" stroke-width="1.2"></path><circle cx="4" cy="4" r="1.5" fill="#9BF0B0"></circle><path d="M7,8 Q10,14 8,20" stroke="#3A4157" stroke-width="1.5" fill="none"></path>`;
     case 'server': return `<polygon points="-10,-24 0,-19 10,-24 0,-29" fill="#2A2F40"></polygon><polygon points="-10,-24 0,-19 0,6 -10,1" fill="#171B27"></polygon><polygon points="0,-19 10,-24 10,1 0,6" fill="#1E2330"></polygon><path d="M-8,-17 L-4,-15 M-8,-11 L-4,-9 M-8,-5 L-4,-3" stroke="#7FE3E0" stroke-width="1.8"></path><path d="M2,-13 L6,-15 M2,-7 L6,-9" stroke="#FF6A5F" stroke-width="1.4"></path>`;
     case 'cooler': return `<polygon points="-11,-10 0,-4 11,-10 0,-16" fill="#2E3446"></polygon><polygon points="-11,-10 0,-4 0,8 -11,2" fill="#1B1F2B"></polygon><polygon points="0,-4 11,-10 11,2 0,8" fill="#232838"></polygon><ellipse cx="5.5" cy="-1" rx="3.5" ry="4" fill="none" stroke="#8FD3FF" stroke-width="1.2" transform="skewY(-28)"></ellipse><circle cx="5.5" cy="-1" r="1" fill="#8FD3FF"></circle>`;
+    case 'rack': return `<rect x="-11" y="-36" width="22" height="36" fill="#171B27" stroke="#2A3142" stroke-width="1" shape-rendering="crispEdges"></rect><path d="M-11,-10 H11 M-11,-20 H11 M-11,-30 H11" stroke="#3A4157" stroke-width="1" shape-rendering="crispEdges"></path><rect x="-9" y="-35" width="2" height="2" fill="#7FE3E0"></rect>`;
     case 'quantum': return `<circle cx="0" cy="-8" r="13" fill="#B88BFF" opacity=".14"></circle><polygon points="-8,-8 0,-4 8,-8 0,-12" fill="#3E2E66"></polygon><polygon points="-8,-8 0,-4 0,4 -8,0" fill="#2A1F47"></polygon><polygon points="0,-4 8,-8 8,0 0,4" fill="#33265A"></polygon><path d="M-4,-7 L4,-3 M4,-7 L-4,-3" stroke="#D9C2FF" stroke-width="1" opacity=".9"></path>`;
+  }
+  if (key.startsWith('rig:')){
+    const col = { wifi:'#7FE3E0', ceo:'#F3C66B', dms:'#FF8AD8', bank:'#9BF0B0', cams:'#FF9A5F', sat:'#B88BFF' }[key.slice(4)] || '#7FE3E0';
+    return `<rect x="-9" y="-11" width="18" height="11" fill="#2A2F40" stroke="#3A4157" stroke-width="1" shape-rendering="crispEdges"></rect><rect x="-7" y="-8" width="2" height="2" fill="${col}"></rect><rect x="-3" y="-8" width="2" height="2" fill="${col}" opacity=".6"></rect><rect x="2" y="-9" width="5" height="5" fill="#0E1118"></rect>`;
   }
   return '';
 }
 function renderSlots(){
   const now = Date.now();
-  if (!setSig('slots', SLOTS.map(s => (S.slots[s.id] || '-') + (S.cool[s.id] > now ? 'c' : '')).join('|'))) return;
+  if (!setSig('slots', slots().map(s => (S.slots[s.id] || '-') + (S.cool[s.id] > now ? 'c' : '')).join('|'))) return;
   $('slots').innerHTML = SLOTS.map(s => {
     const key = S.slots[s.id], color = s.type === 'tech' ? '#7FE3E0' : '#F3C66B';
     if (!key){
@@ -655,11 +700,17 @@ function renderSlots(){
         <rect x="-5" y="${y0 + 9}" width="10" height="2" fill="${color}" shape-rendering="crispEdges"></rect></g>`;
     }
     const it = ITEMS[key];
+    if (it.rack){
+      const free = slots().some(x => x.parent === s.id && !S.slots[x.id]);
+      return `<g class="slot-item" data-slot="${s.id}" transform="translate(${s.x},${s.y})"><title>${esc(it.name)}</title>
+        <rect x="-16" y="-48" width="32" height="52" fill="transparent"></rect>
+        ${free ? `<g class="slot-empty"><rect class="ring" x="5" y="-47" width="10" height="10" fill="rgba(7,8,12,.85)" stroke="${color}" stroke-width="1" shape-rendering="crispEdges"></rect><rect x="9" y="-45" width="2" height="6" fill="${color}" shape-rendering="crispEdges"></rect><rect x="7" y="-43" width="6" height="2" fill="${color}" shape-rendering="crispEdges"></rect></g>` : ''}</g>`;
+    }
     return `<g class="slot-item" data-slot="${s.id}" transform="translate(${s.x},${s.y})"><title>${esc(it.name)}</title>
       <rect x="-18" y="-32" width="36" height="44" fill="transparent"></rect></g>`;
   }).join('');
-  $('itemart').innerHTML = SLOTS.filter(s => S.slots[s.id]).map(s =>
-    `<g transform="translate(${s.x},${s.y})"${S.cool[s.id] > now ? ' opacity=".5"' : ''}>${itemSvg(S.slots[s.id])}</g>`).join('');
+  $('itemart').innerHTML = slots().filter(s => S.slots[s.id]).map(s =>
+    `<g transform="translate(${s.x},${s.y})${s.size === 'small' ? ' scale(.5)' : ''}"${S.cool[s.id] > now ? ' opacity=".5"' : ''}>${itemSvg(S.slots[s.id])}</g>`).join('');
   rasterize();
 }
 
@@ -705,25 +756,46 @@ function openSlotSheet(id){ openSlot = id; $('settingsheet').hidden = true; $('s
 function closeSheets(){ openSlot = null; $('slotsheet').hidden = true; $('settingsheet').hidden = true; }
 function renderSlotSheet(force){
   if (!openSlot) return;
-  const s = SLOTS.find(x => x.id === openSlot), key = S.slots[s.id];
-  if (!force && !setSig('slotsheet', [openSlot, key, Math.floor(S.credits)].join('|'))) return;
-  $('slottitle').textContent = key ? ITEMS[key].name : (s.type === 'tech' ? 'Empty tech slot' : 'Empty decor slot');
+  const s = slots().find(x => x.id === openSlot), key = S.slots[s.id];
+  const lv = slotLv(s.id), shelves = slots().filter(x => x.parent === s.id);
+  if (!force && !setSig('slotsheet', [openSlot, key, lv, Math.floor(S.credits), shelves.map(x => (S.slots[x.id] || '-') + slotLv(x.id)).join(',')].join('|'))) return;
+  const small = s.size === 'small';
+  $('slottitle').textContent = key ? (ITEMS[key].rig || ITEMS[key].rack ? ITEMS[key].name : `${ITEMS[key].name} · L${lv}`) : (small ? `Server rack · shelf ${shelfIndex(s) + 1}` : s.type === 'tech' ? 'Empty tech slot' : 'Empty decor slot');
   if (key){
-    const it = ITEMS[key];
-    $('slotbody').innerHTML = `<p class="note">${esc(it.eff)}. Items stay in your room for good.</p>`;
+    const it = ITEMS[key], max = lv >= MAX_ITEM, c = itemUpCost(it, lv);
+    if (it.rack){
+      $('slottitle').textContent = `${it.name} · ${shelves.filter(x => S.slots[x.id]).length}/${it.holds} shelves`;
+      $('slotbody').innerHTML = `<p class="note">Small gear only: rigs, cards and modems. Nothing can be removed; cards and modems level up here.</p>` + shelves.map((sh, i) => {
+        const k = S.slots[sh.id];
+        if (!k) return `<div class="item"><div class="item-main"><span class="item-name">Shelf ${i + 1}</span><span class="item-eff">Empty</span></div><button class="btn small cyan" data-action="shelf:${sh.id}">ADD</button></div>`;
+        const si = ITEMS[k], l = slotLv(sh.id);
+        if (si.rig) return `<div class="item"><div class="item-main"><span class="item-name">${esc(si.name)}</span><span class="item-eff">${esc(effAt(si, 1))}</span></div><button class="btn small" disabled>AUTO</button></div>`;
+        const mx = l >= MAX_ITEM, uc = itemUpCost(si, l);
+        return `<div class="item"><div class="item-main"><span class="item-name">${esc(si.name)} · L${l}</span><span class="item-eff">${esc(effAt(si, l))}${mx ? '' : ` → L${l + 1}: ${esc(effAt(si, l + 1))}`}</span></div>${mx ? `<button class="btn small" disabled>MAXED</button>` : `<button class="btn small cyan" data-action="upitem:${sh.id}" data-cost="${uc}">$${fmt(uc)}</button>`}</div>`;
+      }).join('');
+      return;
+    }
+    if (it.rig){ $('slotbody').innerHTML = `<p class="note">${esc(effAt(it, 1))}. Items stay in your room for good.</p>`; return; }
+    const b = activeBoosts().find(q => q.slot === s.id);
+    $('slotbody').innerHTML = `<p class="note">${esc(effAt(it, lv))}.${b ? ` ${esc(b.label)} active, +${b.amt} comfort for ${Math.ceil((b.until - Date.now()) / 1000)}s more.` : ''} Items stay in your room for good.</p>
+      <div class="item"><div class="item-main"><span class="item-name">${max ? `Maxed at L${MAX_ITEM}` : `Level ${lv + 1}`}</span><span class="item-eff">${max ? 'Nothing left to upgrade here' : esc(effAt(it, lv + 1))}</span></div>
+        ${max ? `<button class="btn small" disabled>MAXED</button>` : `<button class="btn small cyan" data-action="upitem:${s.id}" data-cost="${c}">$${fmt(c)}</button>`}</div>`;
     return;
   }
   const ownedKeys = new Set(Object.values(S.slots));
-  $('slotbody').innerHTML = `<p class="note">${s.type === 'tech' ? 'Tech boosts every job and adds a little comfort. Three slots, and items can\'t be removed, so choose.' : 'Decor makes the room comfortable. Every comfort point adds 1% to all earnings. Items can\'t be removed, so choose.'}</p>` +
-    Object.entries(ITEMS).filter(([k, it]) => it.type === s.type).map(([k, it]) => {
-      const owned = ownedKeys.has(k);
-      return `<div class="item"><div class="item-main"><span class="item-name">${esc(it.name)}</span><span class="item-eff">${esc(it.eff)}</span></div>
-        ${owned ? `<button class="btn small" disabled>PLACED</button>` : `<button class="btn small cyan" data-action="buy:${k}" data-cost="${it.cost}">$${fmt(it.cost)}</button>`}</div>`;
+  const note = small ? 'A rack shelf takes small gear only: rigs, cards and modems. Nothing can be removed, so choose.'
+    : s.type === 'tech' ? 'Floor and wall space takes big hardware: towers, units and racks. A rack adds three shelf slots for small gear. Nothing can be removed, so choose; tech levels up in place.'
+    : 'Decor makes the room comfortable. Every comfort point adds 1% to all earnings. Items can\'t be removed, so choose; they level up in place.';
+  $('slotbody').innerHTML = `<p class="note">${note}</p>` + (s.parent ? `<div class="item"><div class="item-main"><span class="item-name">Shelf ${shelfIndex(s) + 1}</span><span class="item-eff">Pick what goes here</span></div><button class="btn small" data-action="shelf:${s.parent}">BACK</button></div>` : '') +
+    Object.entries(ITEMS).filter(([k, it]) => fits(s, it) && (!it.rig || (js(it.job).lv > 0 && !js(it.job).fixer))).map(([k, it]) => {
+      const owned = !it.rack && ownedKeys.has(k), c = itemCost(k);
+      return `<div class="item"><div class="item-main"><span class="item-name">${esc(it.name)}</span><span class="item-eff">${esc(effAt(it, 1))}</span></div>
+        ${owned ? `<button class="btn small" disabled>PLACED</button>` : `<button class="btn small cyan" data-action="buy:${k}" data-cost="${c}">$${fmt(c)}</button>`}</div>`;
     }).join('');
 }
 function renderSettings(){
   const m = S.m, daysSince = Math.floor((Date.now() - m.first) / 86400000) + 1;
-  $('settingsbody').innerHTML = `<div class="kv"><span>Days since first play</span><span>${daysSince}</span><span>Days with a session</span><span>${m.days.length}</span><span>Sessions</span><span>${m.sessions}</span><span>Jobs completed</span><span>${fmt(S.totalJobs)}</span><span>Hacks</span><span>${fmt(m.taps)}</span><span>Bars completed</span><span>${fmt(m.bars || 0)}</span><span>Items placed</span><span>${placed().length}/${SLOTS.length}</span><span>Comfort</span><span>${comfort()}</span></div>
+  $('settingsbody').innerHTML = `<div class="kv"><span>Days since first play</span><span>${daysSince}</span><span>Days with a session</span><span>${m.days.length}</span><span>Sessions</span><span>${m.sessions}</span><span>Jobs completed</span><span>${fmt(S.totalJobs)}</span><span>Hacks</span><span>${fmt(m.taps)}</span><span>Bars completed</span><span>${fmt(m.bars || 0)}</span><span>Items placed</span><span>${placed().length}/${slots().length}</span><span>Comfort</span><span>${comfort()}</span></div>
     <p class="note">Counters live on this device only. Ask testers to screenshot this panel on day 1, day 3 and day 7.</p>
     <div class="item"><div class="item-main"><span class="item-name">Wipe save</span><span class="item-eff">Start a fresh test on this device</span></div><button class="btn small red" data-action="reset">WIPE</button></div>`;
 }
@@ -777,7 +849,6 @@ function renderTiles(){
       <div class="row-main">
         <div class="row-top"><span class="n">${esc(j.name)}</span><span class="lv">L${st.lv}</span></div>
         <div class="row-meta">${first ? 'Buy level 1 to start' : `<span class="p" data-pay="${j.id}"></span> · <span data-left="${j.id}">${fmtTime(j.time / rt)}</span><span data-ms="${j.id}"></span>`}</div>
-        ${st.fixer ? '' : `<button class="fx" data-action="fixer:${j.id}" data-cost="${j.fixer}">Hire fixer · $${fmt(j.fixer)}</button>`}
       </div>
       ${maxed(j) ? `<button class="up" disabled aria-label="${esc(j.name)} is at max level"><span class="un">MAXED</span><span class="uc">L${MAX_LV}</span></button>` : `<button class="up${pulse}" data-action="up:${j.id}" data-cost="${costN(j, n)}" data-n="${n}" aria-label="Level up ${esc(j.name)}"><span class="un">${upLabel(j, n)}</span><span class="uc">$<span data-upcost="${j.id}">${fmt(costN(j, n))}</span></span></button>`}
     </div>`;
@@ -835,7 +906,8 @@ function update(){
   const js_ = $('jobsum');
   js_.textContent = !dockOpen && upReady ? 'UPGRADE READY' : ids.length ? `${ids.length} running · ${JOBS.filter(j => js(j.id).fixer).length} auto` : (S.totalJobs ? 'idle' : 'buy level 1 to start');
   js_.classList.toggle('ready', !dockOpen && upReady);
-  $('hacksub').textContent = `+$${fmt(tapMoney())} · ${S.bar}/${BAR_STEPS} · bonus $${fmt(tapMoney() * BAR_BONUS)}`;
+  const stack = barStack(), left = stack ? Math.ceil((Math.max(...S.bars.filter(t => t > now)) - now) / 1000) : 0;
+  $('hacksub').textContent = `+$${fmt(tapMoney())} · ${S.bar}/${BAR_STEPS} · bonus $${fmt(tapMoney() * BAR_BONUS)}` + (stack ? ` · ×${barSpeed().toFixed(2)} speed ${left}s` : '');
   const blaze = now < blazeUntil;
   $('hack').classList.toggle('full', !blaze && S.bar >= BAR_STEPS - 1);
   $('hack').classList.toggle('blaze', blaze);
@@ -853,7 +925,7 @@ function tickEvents(now){
   S.boosts = (S.boosts || []).filter(b => b.until > now);
   if (S.event && (S.event.until < now || S.slots[S.event.slot] !== S.event.key)) S.event = null;
   if (S.event || now < (S.nextEvent || 0)) return;
-  const cands = SLOTS.filter(s => S.slots[s.id] && ITEMS[S.slots[s.id]].ev && !S.boosts.some(b => b.slot === s.id));
+  const cands = slots().filter(s => S.slots[s.id] && ITEMS[S.slots[s.id]].ev && !S.boosts.some(b => b.slot === s.id));
   if (!cands.length){ S.nextEvent = now + 10000; return; }
   const s = cands[Math.floor(Math.random() * cands.length)];
   S.event = { slot: s.id, key: S.slots[s.id], until: now + EV_WINDOW * 1000 };
@@ -866,7 +938,7 @@ function acceptEvent(){
   S.boosts = (S.boosts || []).filter(b => b.until > now);
   S.boosts.push({ slot: e.slot, key: e.key, amt: ev.boost, until: now + ev.dur * 1000, label: ev.label });
   S.event = null;
-  const sl = SLOTS.find(x => x.id === e.slot), p = svgToScreen(sl.x, sl.y - 24);
+  const sl = slots().find(x => x.id === e.slot), p = svgToScreen(sl.x, sl.y - 24);
   popAt(p.x, p.y, `+${ev.boost} comfort`, 'comfort big');
   toast(`${ev.label} · +${ev.boost} comfort for ${ev.dur}s`);
   save(); render();
@@ -874,7 +946,7 @@ function acceptEvent(){
 function renderEvent(now){
   const el = $('evb'), e = S.event;
   if (!e){ el.hidden = true; return; }
-  const ev = ITEMS[e.key].ev, sl = SLOTS.find(x => x.id === e.slot);
+  const ev = ITEMS[e.key].ev, sl = slots().find(x => x.id === e.slot);
   if (setSig('event', e.slot + e.key + e.until)){
     el.innerHTML = `<span class="evq">${esc(ev.ask)}</span><span class="eva">${esc(ev.act)} · +${ev.boost} for ${ev.dur}s <i data-evleft></i></span>`;
   }
@@ -889,7 +961,7 @@ function sparkBoosts(now){
   if (now - lastSpark < 1600) return;
   lastSpark = now;
   for (const b of activeBoosts()){
-    const sl = SLOTS.find(x => x.id === b.slot); if (!sl) continue;
+    const sl = slots().find(x => x.id === b.slot); if (!sl) continue;
     const p = svgToScreen(sl.x + (Math.random() - .5) * 16, sl.y - 18);
     popAt(p.x, p.y, '+', 'comfort');
   }
@@ -903,7 +975,7 @@ document.addEventListener('click', e => {
   if (runRow && !e.target.closest('button')){ startJob(runRow.dataset.run, true); save(); render(); return; }
   const b = e.target.closest('[data-action]');
   if (!b || b.disabled) return;
-  const [a, arg] = b.dataset.action.split(':');
+  const act = b.dataset.action, cut = act.indexOf(':'), a = cut < 0 ? act : act.slice(0, cut), arg = cut < 0 ? undefined : act.slice(cut + 1);   /* item keys like rig:wifi contain a colon */
   switch (a){
     case 'hack': hack(); break;
     case 'dock': dockOpen = !dockOpen; $('dock').classList.toggle('open', dockOpen); b.setAttribute('aria-expanded', String(dockOpen)); update(); return;
@@ -917,8 +989,17 @@ document.addEventListener('click', e => {
         const lv = js(arg).lv;
         if (maxed(j)) toast(`${j.name} maxed out at L${MAX_LV}`);
         else if (msMult(lv) > msMult(lv - n)) toast(`${j.name} now pays 2×`); } break; }
-    case 'fixer': { const j = J[arg]; if (S.credits >= j.fixer && !js(arg).fixer){ S.credits -= j.fixer; js(arg).fixer = true; startJob(arg, false); toast(`Fixer hired · ${j.name} repeats on its own`); } break; }
-    case 'buy': { const it = ITEMS[arg]; if (openSlot && it && S.credits >= it.cost && !Object.values(S.slots).includes(arg)){ S.credits -= it.cost; S.slots[openSlot] = arg; toast(`${it.name} placed · +${it.comfort} comfort`); if (it.ev) S.nextEvent = Math.min(S.nextEvent || Infinity, Date.now() + EV_FIRST * 1000); closeSheets(); } break; }
+    case 'buy': { const it = ITEMS[arg], sl = openSlot && slots().find(x => x.id === openSlot);
+      if (sl && it && !S.slots[sl.id] && fits(sl, it) && (it.rack || !Object.values(S.slots).includes(arg))){
+        const c = itemCost(arg);
+        if (S.credits >= c){ S.credits -= c; S.slots[sl.id] = arg; S.itemLv[sl.id] = 1;
+          if (it.rig){ js(it.job).fixer = true; startJob(it.job, false); toast(`${it.name} installed · ${J[it.job].name} runs on its own`); }
+          else if (it.rack) toast(`Server rack installed · ${it.holds} shelf slots`);
+          else { toast(`${it.name} placed · +${itemComfort(it, 1)} comfort`); if (it.ev) S.nextEvent = Math.min(S.nextEvent || Infinity, Date.now() + EV_FIRST * 1000); }
+          if (sl.parent) openSlotSheet(sl.parent); else closeSheets(); } } break; }
+    case 'upitem': { const it = ITEMS[S.slots[arg]], lv = slotLv(arg);
+      if (it && lv < MAX_ITEM){ const c = itemUpCost(it, lv); if (S.credits >= c){ S.credits -= c; S.itemLv[arg] = lv + 1; toast(`${it.name} L${lv + 1} · ${effAt(it, lv + 1)}`); } } break; }
+    case 'shelf': openSlotSheet(arg); render(); return;
     case 'closesheets': closeSheets(); return;
     case 'settings': $('slotsheet').hidden = true; $('settingsheet').hidden = false; renderSettings(); return;
     case 'reset': queueModal(resetModal); return;
@@ -932,15 +1013,11 @@ $('hack').addEventListener('pointerdown', e => { e.preventDefault(); hack(); ren
 $('hack').addEventListener('click', e => { e.stopPropagation(); }, true);
 
 $('room').addEventListener('click', e => {
-  const rect = $('room').getBoundingClientRect();
-  const x = e.clientX ? e.clientX - rect.left : rect.width / 2, y = e.clientY ? e.clientY - rect.top : rect.height / 2;
   const slotEl = e.target.closest && e.target.closest('[data-slot]');
   if (!slotEl){ if (openSlot || !$('settingsheet').hidden) closeSheets(); return; }
-  const id = slotEl.getAttribute('data-slot'), key = S.slots[id];
-  if (!key){ openSlotSheet(id); render(); return; }
+  const id = slotEl.getAttribute('data-slot');
   if (S.event && S.event.slot === id){ acceptEvent(); return; }
-  const it = ITEMS[key], b = activeBoosts().find(q => q.slot === id);
-  popAt(x, y - 10, b ? `${b.label} · ${Math.ceil((b.until - Date.now()) / 1000)}s left` : `${it.name} · +${it.comfort} comfort`, 'comfort');
+  openSlotSheet(id); render();
 });
 
 /* ---------- playtest counters ---------- */
@@ -960,10 +1037,12 @@ function load(data){
   S = Object.assign(fresh(), raw || {});
   S.m = Object.assign(fresh().m, S.m || {});
   delete S.focus;
-  S.boosts = S.boosts || []; if (!S.nextEvent) S.nextEvent = Date.now() + EV_FIRST * 1000;
+  S.boosts = S.boosts || []; S.bars = S.bars || []; if (!S.nextEvent) S.nextEvent = Date.now() + EV_FIRST * 1000;
   for (const id of Object.keys(S.running || {})) if (!J[id]) delete S.running[id];
   for (const id of Object.keys(S.slots || {})) if (!ITEMS[S.slots[id]]) delete S.slots[id];
   for (const id of Object.keys(S.jobs || {})) if (S.jobs[id] && S.jobs[id].lv > MAX_LV) S.jobs[id].lv = MAX_LV;
+  S.itemLv = S.itemLv || {};
+  for (const id of Object.keys(S.itemLv)) if (!S.slots[id]) delete S.itemLv[id]; else if (S.itemLv[id] > MAX_ITEM) S.itemLv[id] = MAX_ITEM;
   return !!raw;
 }
 function boot(data){
