@@ -410,7 +410,7 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 /* Economy: AdVenture-Capitalist-style, tuned for a 7-day idle curve. Each job has levels up to MAX_LV; level n costs
    base × r^n (r = 1.12–1.13), pays base × level, and doubles at 25/50/100. Fixers automate a job. Items multiply everything. */
 const JOBS = [
-  { id:'wifi', name:'Crack a Wi-Fi password', time:2,   pay:1,     cost:6,     r:1.12, rep:1,   unlock:0,      fixer:20000 },
+  { id:'wifi', name:'Crack a Wi-Fi password', time:2,   pay:1,     cost:6,     r:1.12, rep:1,   unlock:0,      fixer:1000 },
   { id:'ceo',  name:"Steal a CEO's emails",   time:6,   pay:15,    cost:200,   r:1.13, rep:3,   unlock:25,     fixer:300000 },
   { id:'dms',  name:"Leak a politician's DMs",time:12,  pay:120,   cost:3000,  r:1.13, rep:10,  unlock:400,    fixer:4e6 },
   { id:'bank', name:'Drain a corrupt bank',   time:30,  pay:1000,  cost:40000, r:1.13, rep:30,  unlock:4000,   fixer:5e7 },
