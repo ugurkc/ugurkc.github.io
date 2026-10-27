@@ -15,10 +15,8 @@ window.RA_CONFIG = {
   },
   "jobs": {
     "enabled": true,
-    "maxLevel": 25,
-    "milestones": [
-      25
-    ],
+    "maxLevel": 50,
+    "milestones": [],
     "revealAt": 0.6,
     "list": [
       {
@@ -27,7 +25,7 @@ window.RA_CONFIG = {
         "time": 6,
         "pay": 3,
         "cost": 6,
-        "r": 1.12,
+        "r": 1.2,
         "rep": 3,
         "unlock": 0
       },
@@ -37,7 +35,7 @@ window.RA_CONFIG = {
         "time": 18,
         "pay": 45,
         "cost": 200,
-        "r": 1.13,
+        "r": 1.2,
         "rep": 9,
         "unlock": 25
       },
@@ -47,7 +45,7 @@ window.RA_CONFIG = {
         "time": 36,
         "pay": 360,
         "cost": 3000,
-        "r": 1.13,
+        "r": 1.2,
         "rep": 30,
         "unlock": 400
       },
@@ -57,7 +55,7 @@ window.RA_CONFIG = {
         "time": 90,
         "pay": 3000,
         "cost": 40000,
-        "r": 1.13,
+        "r": 1.2,
         "rep": 90,
         "unlock": 6000
       },
@@ -67,7 +65,7 @@ window.RA_CONFIG = {
         "time": 180,
         "pay": 24000,
         "cost": 500000,
-        "r": 1.12,
+        "r": 1.2,
         "rep": 300,
         "unlock": 60000
       },
@@ -77,7 +75,7 @@ window.RA_CONFIG = {
         "time": 360,
         "pay": 180000,
         "cost": 6000000,
-        "r": 1.12,
+        "r": 1.2,
         "rep": 900,
         "unlock": 350000
       }
