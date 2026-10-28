@@ -87,32 +87,32 @@ window.RA_CONFIG = {
       {
         "job": "wifi",
         "name": "Wi-Fi cracking script",
-        "cost": 120
+        "cost": 1200
       },
       {
         "job": "ceo",
         "name": "Account checker bot",
-        "cost": 600
+        "cost": 6000
       },
       {
         "job": "dms",
         "name": "Phone unlock kit",
-        "cost": 2500
+        "cost": 25000
       },
       {
         "job": "bank",
         "name": "Loyalty app exploit",
-        "cost": 12000
+        "cost": 120000
       },
       {
         "job": "cams",
         "name": "Ransomware kit",
-        "cost": 60000
+        "cost": 600000
       },
       {
         "job": "sat",
         "name": "Transmitter hijack rig",
-        "cost": 250000
+        "cost": 2500000
       }
     ]
   },
