@@ -809,7 +809,7 @@ function bestId(){
   return best;
 }
 const RC = 120;   /* perimeter of the 30×30 progress frame */
-const SHORT = { wifi:'WIFI', ceo:'MAIL', dms:'DMS', bank:'BANK', cams:'CAMS', sat:'SAT' };
+const SHORT = { wifi:'WIFI', ceo:'STRM', dms:'PHNE', bank:'KBAB', cams:'DENT', sat:'RDIO' };
 function ringSvg(id, cls, label, size, prog = true){
   return `<svg class="ring ${cls}" width="${size}" height="${size}" viewBox="0 0 36 36" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="3" width="30" height="30" class="rt"></rect>${prog ? `<rect x="3" y="3" width="30" height="30" class="rp" data-ring="${id}" stroke-dasharray="${RC}" stroke-dashoffset="${RC}"></rect>` : ''}<text x="18" y="21" text-anchor="middle">${label}</text></svg>`;
 }

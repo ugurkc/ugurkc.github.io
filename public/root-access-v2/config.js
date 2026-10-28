@@ -21,60 +21,60 @@ window.RA_CONFIG = {
     "list": [
       {
         "id": "wifi",
-        "name": "Crack a Wi-Fi password",
+        "name": "Guess a neighbor's Wi-Fi password",
         "time": 6,
-        "pay": 3,
-        "cost": 6,
+        "pay": 2,
+        "cost": 5,
         "r": 1.2,
         "rep": 3,
         "unlock": 0
       },
       {
         "id": "ceo",
-        "name": "Steal a CEO's emails",
-        "time": 18,
-        "pay": 45,
-        "cost": 200,
+        "name": "Sell a cracked streaming account",
+        "time": 15,
+        "pay": 8,
+        "cost": 40,
         "r": 1.2,
         "rep": 9,
         "unlock": 25
       },
       {
         "id": "dms",
-        "name": "Leak a politician's DMs",
-        "time": 36,
-        "pay": 360,
-        "cost": 3000,
+        "name": "Recover a locked phone for cash",
+        "time": 30,
+        "pay": 30,
+        "cost": 250,
         "r": 1.2,
         "rep": 30,
         "unlock": 400
       },
       {
         "id": "bank",
-        "name": "Drain a corrupt bank",
-        "time": 90,
-        "pay": 3000,
-        "cost": 40000,
+        "name": "Hack a kebab shop's loyalty app",
+        "time": 60,
+        "pay": 120,
+        "cost": 1500,
         "r": 1.2,
         "rep": 90,
         "unlock": 6000
       },
       {
         "id": "cams",
-        "name": "Blind a city's cameras",
-        "time": 180,
-        "pay": 24000,
-        "cost": 500000,
+        "name": "Ransom a dentist's office PC",
+        "time": 120,
+        "pay": 500,
+        "cost": 8000,
         "r": 1.2,
         "rep": 300,
         "unlock": 60000
       },
       {
         "id": "sat",
-        "name": "Hijack a satellite",
-        "time": 360,
-        "pay": 180000,
-        "cost": 6000000,
+        "name": "Crash a local radio station",
+        "time": 240,
+        "pay": 2000,
+        "cost": 40000,
         "r": 1.2,
         "rep": 900,
         "unlock": 350000
@@ -86,33 +86,33 @@ window.RA_CONFIG = {
     "list": [
       {
         "job": "wifi",
-        "name": "DeAuth-o-Matic 3000",
-        "cost": 1000
+        "name": "Wi-Fi cracking script",
+        "cost": 1200
       },
       {
         "job": "ceo",
-        "name": "CEObuster 5000",
-        "cost": 100000
+        "name": "Account checker bot",
+        "cost": 6000
       },
       {
         "job": "dms",
-        "name": "DMscraper XL",
-        "cost": 1300000
+        "name": "Phone unlock kit",
+        "cost": 25000
       },
       {
         "job": "bank",
-        "name": "BankDrainer Turbo",
-        "cost": 16000000
+        "name": "Loyalty app exploit",
+        "cost": 120000
       },
       {
         "job": "cams",
-        "name": "BlindSpot 9000",
-        "cost": 200000000
+        "name": "Ransomware kit",
+        "cost": 600000
       },
       {
         "job": "sat",
-        "name": "SatJacker Ultra",
-        "cost": 2700000000
+        "name": "Transmitter hijack rig",
+        "cost": 2500000
       }
     ]
   },
@@ -120,7 +120,7 @@ window.RA_CONFIG = {
     "enabled": true,
     "largeSlots": 3,
     "decorSlots": 3,
-    "cost": 400,
+    "cost": 60,
     "r": 50,
     "holds": 3
   },
@@ -135,17 +135,17 @@ window.RA_CONFIG = {
         "id": "gpu",
         "type": "tech",
         "size": "large",
-        "name": "GPU tower",
-        "cost": 10000,
+        "name": "Old laptop",
+        "cost": 80,
         "comfort": 1,
-        "pay": 1.25
+        "pay": 1.15
       },
       {
         "id": "fiber",
         "type": "tech",
         "size": "small",
-        "name": "Fiber modem",
-        "cost": 1000000,
+        "name": "ISP box",
+        "cost": 40,
         "comfort": 2,
         "speed": 1.2
       },
@@ -153,37 +153,37 @@ window.RA_CONFIG = {
         "id": "server",
         "type": "tech",
         "size": "large",
-        "name": "Server tower",
-        "cost": 25000000,
+        "name": "Workstation",
+        "cost": 4500,
         "comfort": 3,
-        "pay": 1.5
+        "pay": 2
       },
       {
         "id": "cooler",
         "type": "tech",
         "size": "large",
-        "name": "Cooling unit",
-        "cost": 400000000,
+        "name": "Tower Unit",
+        "cost": 9000,
         "comfort": 4,
-        "speed": 1.3
+        "speed": 2
       },
       {
         "id": "quantum",
         "type": "tech",
         "size": "small",
-        "name": "Quantum card",
-        "cost": 2500000000,
+        "name": "Fiber line",
+        "cost": 1200,
         "comfort": 5,
-        "pay": 2
+        "speed": 1.5
       },
       {
         "id": "lamp",
         "type": "decor",
         "name": "Lava lamp",
-        "cost": 2000,
-        "comfort": 5,
+        "cost": 30,
+        "comfort": 2,
         "event": {
-          "boost": 10,
+          "boost": 3,
           "dur": 30
         }
       },
@@ -191,44 +191,44 @@ window.RA_CONFIG = {
         "id": "plant",
         "type": "decor",
         "name": "Plant",
-        "cost": 40000,
-        "comfort": 10,
+        "cost": 25,
+        "comfort": 2,
         "event": {
-          "boost": 15,
-          "dur": 45
+          "boost": 3,
+          "dur": 30
         }
       },
       {
         "id": "phones",
         "type": "decor",
         "name": "Headphones",
-        "cost": 200000,
-        "comfort": 15,
+        "cost": 700,
+        "comfort": 10,
         "event": {
-          "boost": 20,
-          "dur": 40
+          "boost": 15,
+          "dur": 30
         }
       },
       {
         "id": "cat",
         "type": "decor",
         "name": "Cat",
-        "cost": 5000000,
-        "comfort": 25,
+        "cost": 300,
+        "comfort": 10,
         "event": {
-          "boost": 30,
-          "dur": 45
+          "boost": 20,
+          "dur": 30
         }
       },
       {
         "id": "gf",
         "type": "decor",
         "name": "Girlfriend",
-        "cost": 100000000,
-        "comfort": 40,
+        "cost": 2500,
+        "comfort": 20,
         "event": {
-          "boost": 60,
-          "dur": 40
+          "boost": 100,
+          "dur": 15
         }
       }
     ]
